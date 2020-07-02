@@ -1,5 +1,5 @@
-= antora 模板项目
-xiayx <xiayouxue@hotmail.com>
-v1.0, 2019-10-16: SNAPSHOT
+= antora 文档
+安宁 <xiayouxue@hotmail.com>
+v1.0, 2020-07-03: SNAPSHOT
 
-查看 http://peacetrue.github.io/public/peacetrue-template-antora/index.html[详情^]
+本项目是 https://peacetrue.cn/summarize/index.html[安宁的博客^] 的源码地址。
