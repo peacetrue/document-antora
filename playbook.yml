@@ -35,6 +35,9 @@ content:
     - url: https://github.com/peacetrue/learn-shell
       branches: master
       start_path: docs/antora
+    - url: https://github.com/peacetrue/learn-spring
+      branches: master
+      start_path: docs/antora
 ui:
   bundle:
     url: https://gitlab.com/antora/antora-ui-default/-/jobs/artifacts/master/raw/build/ui-bundle.zip?job=bundle-stable
