@@ -29,6 +29,9 @@ content:
     #  - url: ../peacetrue-result
     #    branches: master
     #    start_path: docs/antora
+    - url: https://github.com/peacetrue/learn
+      branches: master
+      start_path: docs/antora
     - url: https://github.com/peacetrue/learn-jmeter
       branches: master
       start_path: docs/antora
