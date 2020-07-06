@@ -2,7 +2,7 @@
 # antora generate --to-dir public playbook.yml
 runtime:
   cache_dir: ./.cache/antora
-#  fetch: true
+  fetch: true
 site:
   title: 安宁的博客
   url: https://peacetrue.cn/summarize/index.html
