@@ -1,10 +1,15 @@
 # antora generate --clean --to-dir public playbook.yml
+# antora generate --to-dir public playbook.yml
 runtime:
   cache_dir: ./.cache/antora
+#  fetch: true
 site:
   title: 安宁的博客
   url: https://peacetrue.cn/summarize/index.html
-  start_page: learn-jmeter::index.adoc
+  start_page: learn::index.adoc
+asciidoc:
+  attributes:
+    numbered: ''
 content:
   branches: master
   sources:
@@ -29,18 +34,18 @@ content:
     #  - url: ../peacetrue-result
     #    branches: master
     #    start_path: docs/antora
-    - url: https://github.com/peacetrue/learn
-      branches: master
-      start_path: docs/antora
-    - url: https://github.com/peacetrue/learn-jmeter
-      branches: master
-      start_path: docs/antora
-    - url: https://github.com/peacetrue/learn-shell
-      branches: master
-      start_path: docs/antora
-    - url: https://github.com/peacetrue/learn-spring
-      branches: master
-      start_path: docs/antora
+   - url: https://github.com/peacetrue/learn
+     branches: master
+     start_path: docs/antora
+   - url: https://github.com/peacetrue/learn-jmeter
+     branches: master
+     start_path: docs/antora
+   - url: https://github.com/peacetrue/learn-shell
+     branches: master
+     start_path: docs/antora
+   - url: https://github.com/peacetrue/learn-spring
+     branches: master
+     start_path: docs/antora
 ui:
   bundle:
     url: https://gitlab.com/antora/antora-ui-default/-/jobs/artifacts/master/raw/build/ui-bundle.zip?job=bundle-stable
