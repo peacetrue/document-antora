@@ -46,8 +46,8 @@ content:
    - url: https://github.com/peacetrue/learn-spring
      branches: master
      start_path: docs/antora
-   - url: https://peacetrue:xiayx0O0@github.com/peacetrue/peacetrue-microservice
-     branches: master
+   - url: https://github.com/peacetrue/peacetrue-microservice-template
+     branches: master,local/1.0.0/basic
      start_path: docs/antora
 ui:
   bundle:
