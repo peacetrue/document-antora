@@ -49,6 +49,9 @@ content:
    - url: https://github.com/peacetrue/learn-spring
      branches: master
      start_path: docs/antora
+   - url: https://github.com/peacetrue/learn-reactive
+     branches: master
+     start_path: docs/antora
    - url: https://github.com/peacetrue/peacetrue-microservice-template
      branches: master,local/1.2.0/sleuth
      start_path: docs/antora
