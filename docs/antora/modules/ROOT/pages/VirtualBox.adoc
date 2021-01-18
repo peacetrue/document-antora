@@ -10,7 +10,7 @@
 
 * $ ip addr
 
-image::file.png[]
+image::ip-addr.png[]
 
 $ vi /etc/sysconfig/network-scripts/ifcfg-enp0s3
 
