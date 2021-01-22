@@ -1,0 +1,21 @@
+= 简介
+
+万事之源。
+
+== 准备电脑
+
+入手一台 MacBook Pro 2019，重新搭建环境。后来遇到各种问题，放弃治疗，直接使用数据迁移。
+
+== 连接网络
+
+根据实际情况选择 WI-FI 或有线。配置网络代理 https://p.sompac.com/xiayouxue/71874548.pac 。
+
+== 安装 brew
+
+== 安装 Git
+
+安装 Git，以便从 http://github.com/peacetrue 拉取文档和代码。
+
+== 安装 IntelliJ IDEA
+
+
