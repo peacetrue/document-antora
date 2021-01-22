@@ -1,38 +1,115 @@
 = VirtualBox
 
+本文简单介绍虚拟机 *VirtualBox* 的使用。以下操作在 **macOS Catalina 10.15.6 (19G73) ** 系统上完成 。
+
 == 参考
 
-* https://www.qikegu.com/uncategorized/1195
+* https://www.virtualbox.org/[官网^]
+* https://www.cnblogs.com/mawanglin2008/articles/3656006.html[VirtualBox实现内外网络互访问的配置^]
 
-== 连接外网
+== 获取 VirtualBox 安装包
 
-刚装好的系统有个问题，无法连外网，这是由于 ifcfg 配置文件中的 ONBOOT 属性默认设置为 no。
+* 下载 https://download.virtualbox.org/virtualbox/6.1.18/VirtualBox-6.1.18-142142-OSX.dmg[VirtualBox-6.1.18]
+* 使用安装盘中的 *VirtualBox-6.1.18-142142-OSX.dmg*
 
-* $ ip addr
+== 在 VirtualBox 上安装 Centos7
 
-image::ip-addr.png[]
+从安装盘中获取 *CentOS-7-x86_64-Minimal-2003.iso* （无界面版）。选择以下安装参数：
 
-$ vi /etc/sysconfig/network-scripts/ifcfg-enp0s3
-
-[source%nowrap,shell]
-----
-ONBOOT=yes
-----
-
-== 连接方式
-
-=== 网络地址转换（NAT）
-
-== 安装 Centos7
-
-准备 CentOS-7-x86_64-Minimal-2003.iso，无界面版，已在 U 盘上。
-
+* 名称：centos7
 * 类型：Linux
 * 版本：Red Hat（64-bit）
 
-* 创建备份【初始版本】
+安装完成后，设置账号为 *root*，密码为 *123456* 。
 
-== 虚拟机网络规划
+== 连接外网
 
+刚装好的系统有个问题：无法连外网，这是由于配置文件 `ifcfg-enp0s3` 中 `ONBOOT` 属性默认为 `no` 。 通过以下操作，实现外网连接：
 
+. 使用命令 `vi /etc/sysconfig/network-scripts/ifcfg-enp0s3` 编辑文件，修改内容 `ONBOOT=yes`
+. 使用命令 `service network restart` 重启网络服务
+
+//使用命令 `ip addr` 查看 IP 地址为 *10.0.2.15* 。
+
+创建 *basic* 备份，该备份支持外网连接。
+
+== 宿主机连接虚拟机
+
+在虚拟机中操作十分不便，使用宿主机连接虚拟机后，在宿主机中操作虚拟机。默认情况下不支持从宿主机连接虚拟机，需要通过 *仅主机（Host-Only）网络* 模式实现。
+
+=== 查看虚拟机网关
+
+image::VirtualBox/查看网关.png[]
+
+* 名称：vboxnet0
+* 网关地址：192.168.150.1
+* 子网掩码：255.255.255.0
+
+启用 DHCP 服务器，自动分配 IP 地址：
+
+image::VirtualBox/启用DHCP.png[]
+
+=== 查看虚拟机在宿主机的网卡
+
+使用命令 `ifconfig vboxnet0` 查看宿主机 *vboxnet0* 网卡：
+
+[source%nowrap,bash]
+----
+$ ifconfig vboxnet0
+vboxnet0: flags=8943<UP,BROADCAST,RUNNING,PROMISC,SIMPLEX,MULTICAST> mtu 1500
+	ether 0a:00:27:00:00:00
+	inet 192.168.150.1 netmask 0xffffff00 broadcast 192.168.150.255
+----
+
+=== 添加【网卡2】
+
+image::VirtualBox/添加网卡2.png[]
+
+* MAC 地址：0800277C8FC3 （08:00:27:7C:8F:C3）
+
+使用命令 `ip addr` 查看虚拟机网络情况：
+
+image::VirtualBox/添加网卡2后网络情况.png[]
+
+* *网卡2* 对应网卡 *enp0s8*
+* 动态分配的 IP 地址为：*192.168.150.3*
+
+创建 *动态IP* 备份，该备份支持宿主机连接虚拟机。
+
+=== 宿主机连接虚拟机
+
+. 配置免密登陆：`ssh-copy-id -i ~/.ssh/id_rsa.pub root@192.168.150.3`
+. 登陆虚拟机：`ssh root@192.168.150.3`
+
+虽然是动态分配的 IP ，使用中没有发现 IP 地址变化的情况。
+
+=== 虚拟机之间通讯
+
+复制一个虚拟机 *centos7 副本*，测试虚拟机之间的网络连接。使用中发现，复制出的新虚拟机 IP 地址依次递增。
+
+. 登陆虚拟机 *centos7*：`ssh root@192.168.150.3`
+. 登陆虚拟机 *centos7 副本*：`ssh root@192.168.150.4`
+. 虚拟机 *centos7* 和 *centos7 副本* 之间，可以使用 IP *192.168.150.3* 和 *192.168.150.4* 相互连接
+
+////
+=== 配置【网卡2】固定 IP
+
+. cd /etc/sysconfig/network-scripts
+. cp ifcfg-enp0s3 ifcfg-enp0s8
+. vi ifcfg-enp0s8
+
+[source%nowrap,properties]
+----
+DEVICE=enp0s8 #网卡名称
+TYPE=Ethernet
+ONBOOT=yes 设置为自动启动
+BOOTPROTO=static #改为使用静态ip
+IPADDR=192.168.150.2 #设置该虚拟机的ip地址，要与宿主机在一个网段，但是不能重名
+NETMASK=255.255.255.0 #设置子网掩码，需与图 2-3一致
+NM_CONTROLLED=yes
+HWADDR=08:00:27:7C:8F:C3 #网卡的MAC地址，需与图 2 3中的MAC一致
+#UUID=f4adafbc-322d-4dc8-b549-4291f1c04f01
+----
+
+////
 
