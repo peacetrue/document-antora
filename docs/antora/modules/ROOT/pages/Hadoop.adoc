@@ -343,3 +343,4 @@ image::Hadoop/hdfs.png[]
 打开网址： http://hadoop-node01:8088
 
 image::Hadoop/yarn.png[]
+
