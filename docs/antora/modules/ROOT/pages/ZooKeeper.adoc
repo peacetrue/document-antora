@@ -1,0 +1,150 @@
+= ZooKeeper
+
+本文简单介绍如何在 xref::VirtualBox.adoc[] 上搭建 ZooKeeper 集群，使用的版本为 3.6.2。
+
+== 参考
+
+. https://zookeeper.apache.org/[官网^]
+
+== 集群规划
+
+|===
+|服务器 IP |主机名 |角色
+
+|192.168.150.10
+|zookeeper-node01
+|从
+
+|192.168.150.11
+|zookeeper-node02
+|主
+
+|192.168.150.12
+|zookeeper-node03
+|从
+|===
+
+== 创建节点
+
+先搭建出一个 node，然后复制出另外 2 个，再稍作修改。
+
+=== 创建虚拟机
+
+. 基于 JDK8 复制出 zookeeper-node01
+. 启动 zookeeper-node01
+. 使用命令 `ip addr` 查看 IP 地址为：192.168.150.10
+
+=== 配置虚拟机
+
+[source%nowrap,bash]
+----
+# 登陆 zookeeper-node01
+$ ssh root@192.168.150.10
+
+# 设置主机名
+$ hostnamectl set-hostname zookeeper-node01
+
+# 配置 hosts
+$ echo '192.168.150.10 zookeeper-node01' >>/etc/hosts
+$ echo '192.168.150.11 zookeeper-node02' >>/etc/hosts
+$ echo '192.168.150.12 zookeeper-node03' >>/etc/hosts
+
+# 临时关闭防火墙
+$ systemctl stop firewalld
+# 禁止开机启动
+$ systemctl disable firewalld
+----
+
+=== 安装
+
+[source%nowrap,bash]
+----
+#查看当前目录
+$ pwd
+/root
+
+# 获取安装包
+wget https://mirror.olnevhost.net/pub/apache/zookeeper/zookeeper-3.6.2/apache-zookeeper-3.6.2-bin.tar.gz
+
+# 解压安装包
+$ tar -zxvf apache-zookeeper-3.6.2-bin.tar.gz
+
+# 配置全局命令
+$ echo 'export ZOOKEEPER_HOME=/root/apache-zookeeper-3.6.2-bin'>>~/.bash_profile
+$ echo 'export PATH=$PATH:$ZOOKEEPER_HOME/bin'>>~/.bash_profile
+$ source ~/.bash_profile
+----
+
+=== 配置
+
+[source%nowrap,bash]
+----
+# 配置集群
+$ cd apache-zookeeper-3.6.2-bin/conf
+$ cp zoo_sample.cfg zoo.cfg
+# 编辑配置文件
+$ vi zoo.cfg
+# 更改数据存储目录 dataDir=/tmp/zookeeper
+dataDir=/var/zookeeper
+# 追加集群配置
+server.1=zookeeper-node01:2888:3888
+server.2=zookeeper-node02:2888:3888
+server.3=zookeeper-node03:2888:3888
+
+# 配置当前节点编号
+$ mkdir /var/zookeeper
+$ echo '1'>/var/zookeepermyid
+----
+
+=== 启动
+
+[source%nowrap,bash]
+----
+# 查看选项
+$ zkServer.sh
+/usr/bin/java
+ZooKeeper JMX enabled by default
+Using config: /root/apache-zookeeper-3.6.2-bin/bin/../conf/zoo.cfg
+Usage: /root/apache-zookeeper-3.6.2-bin/bin/zkServer.sh [--config <conf-dir>] {start|start-foreground|stop|version|restart|status|print-cmd}
+
+# 启动并在前端打印日志
+$ zkServer.sh start-foreground
+2021-01-24 10:31:05,523 [myid:1] - INFO  [main:QuorumPeerMain@151] - Starting quorum peer, myid=1
+# 未启动其他节点，无法连接
+2021-01-24 10:31:08,882 [myid:1] - WARN  [QuorumConnectionThread-[myid=1]-1:QuorumCnxManager@400] - Cannot open channel to 2 at election address zookeeper-node02/192.168.150.11:3888
+----
+
+== 复制节点
+
+基于 zookeeper-node01 复制出 zookeeper-node02、zookeeper-node03 并做相应修改：
+
+[source%nowrap,bash]
+----
+# 配置 zookeeper-node02
+$ hostnamectl set-hostname zookeeper-node02
+$ echo '2' > /var/zookeeper/myid
+
+# 配置 zookeeper-node03
+$ hostnamectl set-hostname zookeeper-node03
+$ echo '3' > /var/zookeeper/myid
+----
+
+== 启动服务
+
+[source%nowrap,bash]
+----
+# 依次在 3 个节点上启动服务，投票过半成为主节点
+$ zkServer.sh start-foreground
+
+# 查看 zookeeper-node01 状态
+$ zkServer.sh status
+Mode: follower
+
+# 查看 zookeeper-node02 状态
+$ zkServer.sh status
+Mode: leader
+
+# 查看 zookeeper-node03 状态
+$ zkServer.sh status
+Mode: follower
+----
