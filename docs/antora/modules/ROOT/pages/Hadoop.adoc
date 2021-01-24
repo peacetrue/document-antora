@@ -8,27 +8,27 @@
 |服务器 IP |主机名 |HDFS |Yarn
 
 |192.168.150.5
-|node01
+|hadoop-node01
 |NameNode
 |ResourceManager
 
 |192.168.150.6
-|node02
+|hadoop-node02
 |SecondaryNameNode
 |
 
 |192.168.150.7
-|node03
+|hadoop-node03
 |DataNode
 |NodeManager
 
 |192.168.150.8
-|node04
+|hadoop-node04
 |DataNode
 |NodeManager
 
 |192.168.150.9
-|node05
+|hadoop-node05
 |DataNode
 |NodeManager
 |===
@@ -51,20 +51,28 @@
 $ ssh root@192.168.150.5
 
 # 设置主机名
-$ hostnamectl set-hostname node01
+$ hostnamectl set-hostname hadoop-node01
 
 # 配置 hosts
-$ echo '192.168.150.5 node01' >>/etc/hosts
-$ echo '192.168.150.6 node02' >>/etc/hosts
-$ echo '192.168.150.7 node03' >>/etc/hosts
-$ echo '192.168.150.8 node04' >>/etc/hosts
-$ echo '192.168.150.9 node05' >>/etc/hosts
+$ echo '192.168.150.5 hadoop-node01' >>/etc/hosts
+$ echo '192.168.150.6 hadoop-node02' >>/etc/hosts
+$ echo '192.168.150.7 hadoop-node03' >>/etc/hosts
+$ echo '192.168.150.8 hadoop-node04' >>/etc/hosts
+$ echo '192.168.150.9 hadoop-node05' >>/etc/hosts
 
 # 临时关闭防火墙
 $ systemctl stop firewalld
 # 禁止开机启动
 $ systemctl disable firewalld
 ----
+
+////
+192.168.150.5 hadoop-node01
+192.168.150.6 hadoop-node02
+192.168.150.7 hadoop-node03
+192.168.150.8 hadoop-node04
+192.168.150.9 hadoop-node05
+////
 
 === 安装
 
@@ -115,9 +123,9 @@ $ mkdir temp var dfs dfs/name dfs/data
 ----
 // 删除 localhost
 // 添加从节点主机名
-node03
-node04
-node05
+hadoop-node03
+hadoop-node04
+hadoop-node05
 ----
 
 .hadoop-env.sh
@@ -141,7 +149,7 @@ export YARN_NODEMANAGER_USER=root
     <!--指定集群的文件系统类型：分布式文件系统-->
     <property>
         <name>fs.defaultFS</name>
-        <value>hdfs://node01:9000</value>
+        <value>hdfs://hadoop-node01:9000</value>
     </property>
     <!--指定临时文件存储目录-->
     <property>
@@ -168,11 +176,11 @@ export YARN_NODEMANAGER_USER=root
     <!--指定 namenode 的访问地址和端口-->
     <property>
         <name>dfs.namenode.http-address</name>
-        <value>node01:50070</value>
+        <value>hadoop-node01:50070</value>
     </property>
     <property>
         <name>dfs.namenode.secondary.http-address</name>
-        <value>node02:50090</value>
+        <value>hadoop-node02:50090</value>
     </property>
     <property>
        <name>dfs.replication</name>
@@ -192,7 +200,7 @@ export YARN_NODEMANAGER_USER=root
 <configuration>
     <property>
         <name>yarn.resourcemanager.hostname</name>
-        <value>node01</value>
+        <value>hadoop-node01</value>
     </property>
     <property>
         <name>yarn.nodemanager.aux-services</name>
@@ -212,7 +220,7 @@ export YARN_NODEMANAGER_USER=root
 <configuration>
     <property>
         <name>mapred.job.tracker</name>
-        <value>node01:49001</value>
+        <value>hadoop-node01:49001</value>
     </property>
     <property>
         <name>mapred.local.dir</name>
@@ -261,24 +269,24 @@ node04: ssh: connect to host node04 port 22: No route to host
 [source%nowrap,bash]
 ----
 # 设置各节点主机名
-$ hostnamectl set-hostname node0?
+$ hostnamectl set-hostname hadoop-node0?
 
 # 所有节点都启动后，在 node01 上配置 ssh 免密登陆
 $ ssh-keygen -t rsa
 $ cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
-$ scp /root/.ssh/id_rsa.pub root@node01:/root/.ssh/authorized_keys
-$ scp /root/.ssh/id_rsa.pub root@node02:/root/.ssh/authorized_keys
-$ scp /root/.ssh/id_rsa.pub root@node03:/root/.ssh/authorized_keys
-$ scp /root/.ssh/id_rsa.pub root@node04:/root/.ssh/authorized_keys
-$ scp /root/.ssh/id_rsa.pub root@node05:/root/.ssh/authorized_keys
+$ scp /root/.ssh/id_rsa.pub root@hadoop-node01:/root/.ssh/authorized_keys
+$ scp /root/.ssh/id_rsa.pub root@hadoop-node02:/root/.ssh/authorized_keys
+$ scp /root/.ssh/id_rsa.pub root@hadoop-node03:/root/.ssh/authorized_keys
+$ scp /root/.ssh/id_rsa.pub root@hadoop-node04:/root/.ssh/authorized_keys
+$ scp /root/.ssh/id_rsa.pub root@hadoop-node05:/root/.ssh/authorized_keys
 ----
 
 ////
-scp /root/.ssh/id_rsa.pub root@node01:/root/.ssh/authorized_keys
-scp /root/.ssh/id_rsa.pub root@node02:/root/.ssh/authorized_keys
-scp /root/.ssh/id_rsa.pub root@node03:/root/.ssh/authorized_keys
-scp /root/.ssh/id_rsa.pub root@node04:/root/.ssh/authorized_keys
-scp /root/.ssh/id_rsa.pub root@node05:/root/.ssh/authorized_keys
+scp /root/.ssh/id_rsa.pub root@hadoop-node01:/root/.ssh/authorized_keys
+scp /root/.ssh/id_rsa.pub root@hadoop-node02:/root/.ssh/authorized_keys
+scp /root/.ssh/id_rsa.pub root@hadoop-node03:/root/.ssh/authorized_keys
+scp /root/.ssh/id_rsa.pub root@hadoop-node04:/root/.ssh/authorized_keys
+scp /root/.ssh/id_rsa.pub root@hadoop-node05:/root/.ssh/authorized_keys
 ////
 
 == 启动服务
@@ -288,16 +296,21 @@ scp /root/.ssh/id_rsa.pub root@node05:/root/.ssh/authorized_keys
 [source%nowrap,bash]
 ----
 $ /root/hadoop-3.1.4/sbin/start-all.sh
-Starting namenodes on [node01]
-上一次登录：日 1月 24 06:09:15 CST 2021从 192.168.150.1pts/0 上
+Starting namenodes on [hadoop-node01]
+上一次登录：日 1月 24 18:31:47 CST 2021从 192.168.150.1pts/1 上
+hadoop-node01: Warning: Permanently added 'hadoop-node01' (ECDSA) to the list of known hosts.
 Starting datanodes
-上一次登录：日 1月 24 06:11:59 CST 2021pts/0 上
-Starting secondary namenodes [node02]
-上一次登录：日 1月 24 06:12:02 CST 2021pts/0 上
+上一次登录：日 1月 24 18:44:09 CST 2021pts/1 上
+hadoop-node03: Warning: Permanently added 'hadoop-node03' (ECDSA) to the list of known hosts.
+hadoop-node04: Warning: Permanently added 'hadoop-node04' (ECDSA) to the list of known hosts.
+hadoop-node05: Warning: Permanently added 'hadoop-node05' (ECDSA) to the list of known hosts.
+Starting secondary namenodes [hadoop-node02]
+上一次登录：日 1月 24 18:44:11 CST 2021pts/1 上
+hadoop-node02: Warning: Permanently added 'hadoop-node02' (ECDSA) to the list of known hosts.
 Starting resourcemanager
-上一次登录：日 1月 24 06:12:06 CST 2021pts/0 上
+上一次登录：日 1月 24 18:44:15 CST 2021pts/1 上
 Starting nodemanagers
-上一次登录：日 1月 24 06:12:11 CST 2021pts/0 上
+上一次登录：日 1月 24 18:44:20 CST 2021pts/1 上
 # /root/hadoop-3.1.4/sbin/stop-all.sh
 
 # 查看启动进程
@@ -321,12 +334,12 @@ tcp        0      0 192.168.150.5:9000      192.168.150.9:33050     ESTABLISHED 
 
 == 查看 HDFS
 
-打开网址： http://192.168.150.5:50070
+打开网址： http://hadoop-node01:50070
 
 image::Hadoop/hdfs.png[]
 
 == 查看 Yarn 集群
 
-打开网址： http://192.168.150.5:8088
+打开网址： http://hadoop-node01:8088
 
 image::Hadoop/yarn.png[]
