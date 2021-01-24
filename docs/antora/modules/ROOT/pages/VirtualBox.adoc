@@ -10,11 +10,11 @@
 == 获取安装包
 
 * 下载 https://download.virtualbox.org/virtualbox/6.1.18/VirtualBox-6.1.18-142142-OSX.dmg[VirtualBox-6.1.18]
-* 使用安装盘中的 *VirtualBox-6.1.18-142142-OSX.dmg*
+* 使用【安装盘】中的 *VirtualBox-6.1.18-142142-OSX.dmg*
 
 == 安装 Centos7
 
-从安装盘中获取 *CentOS-7-x86_64-Minimal-2003.iso* （无界面版）。选择以下安装参数：
+从【安装盘】中获取 *CentOS-7-x86_64-Minimal-2003.iso* （无界面版）。选择以下安装参数：
 
 * 名称：centos7
 * 类型：Linux
@@ -24,16 +24,23 @@
 
 == 虚拟机连接外网
 
-刚装好的系统有个问题：无法连外网，这是由于配置文件 `ifcfg-enp0s3` 中 `ONBOOT` 属性默认为 `no` 。 通过以下操作，实现外网连接：
+刚装好的系统无法连外网，需要配置启动时激活网卡。
 
-. 使用命令 `vi /etc/sysconfig/network-scripts/ifcfg-enp0s3` 编辑文件，修改内容 `ONBOOT=yes`
-. 使用命令 `service network restart` 重启网络服务
+[source%nowrap,bash]
+----
+# 编辑网卡
+$ vi /etc/sysconfig/network-scripts/ifcfg-enp0s3
+# 修改配置项 ONBOOT=yes
+
+# 重启网络服务
+service network restart
+----
 
 创建 *basic* 备份，该备份支持外网连接。
 
 == 宿主机连接虚拟机
 
-在虚拟机中操作十分不便，使用宿主机连接虚拟机后，在宿主机中操作虚拟机。默认情况下不支持从宿主机连接虚拟机，需要通过 *仅主机（Host-Only）网络* 模式实现。
+在虚拟机中操作十分不便，使用宿主机连接虚拟机后，在宿主机中操作虚拟机。默认情况下不支持从宿主机连接虚拟机，可以通过 *仅主机（Host-Only）网络* 模式实现。
 
 === 查看虚拟机网卡
 
@@ -46,6 +53,8 @@ image::VirtualBox/查看网关.png[]
 启用 DHCP 服务器，自动分配 IP 地址：
 
 image::VirtualBox/启用DHCP.png[]
+
+NOTE: 为了简化操作，这里没有配置静态 IP。
 
 === 查看宿主机网卡
 
@@ -69,15 +78,20 @@ image::VirtualBox/添加网卡2.png[]
 
 image::VirtualBox/添加网卡2后网络情况.png[]
 
-* *网卡2* 对应网卡 *enp0s8*
+* *网卡2* 使用网卡 *enp0s8*
 * 动态分配的 IP 地址为：*192.168.150.3*
 
 创建 *动态IP* 备份，该备份支持宿主机连接虚拟机。
 
 === 宿主机连接虚拟机
 
-. 配置免密登陆：`ssh-copy-id -i ~/.ssh/id_rsa.pub root@192.168.150.3`
-. 登陆虚拟机：`ssh root@192.168.150.3`
+[source%nowrap,bash]
+----
+#配置免密登陆
+$ ssh-keygen -t rsa
+$ cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
+$ ssh-copy-id -i ~/.ssh/id_rsa.pub root@192.168.150.3
+----
 
 虽然是动态分配的 IP ，使用中没有发现 IP 地址变化的情况。
 
@@ -104,9 +118,15 @@ image::VirtualBox/添加网卡2后网络情况.png[]
 
 === 基础命令
 
-. yum install wget
-. yum install tree
-. yum install tcpdump
+[source%nowrap,bash]
+----
+#安装常用命令
+$ yum install -y wget tree tcpdump vim htop net-tools lsof
+
+# 配置 vim 显示行号
+$ vim ~/.vimrc
+# 追加 :set number
+----
 
 === JDK8 备份
 
@@ -121,11 +141,18 @@ OpenJDK Runtime Environment (build 1.8.0_275-b01)
 OpenJDK 64-Bit Server VM (build 25.275-b01, mixed mode)
 #查找Java的路径
 $ update-alternatives --config java
-#设置Java的路径
-$ vim .bash_profile
-$ export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.191.b12-1.el7_6.x86_64/jre/bin/java
-$ source .bash_profile
+
+共有 1 个提供“java”的程序。
+
+  选项    命令
+-----------------------------------------------
+*+ 1           java-1.8.0-openjdk.x86_64 (/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.275.b01-0.el7_9.x86_64/jre/bin/java)
+
+#设置 JAVA_HOME
+$ echo 'export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.275.b01-0.el7_9.x86_64/jre'>>~/.bash_profile
+$ source ~/.bash_profile
 $ echo $JAVA_HOME
+/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.275.b01-0.el7_9.x86_64/jre
 ----
 
 === JDK13 备份
@@ -153,6 +180,12 @@ openjdk version "13" 2019-09-17
 OpenJDK Runtime Environment (build 13+33)
 OpenJDK 64-Bit Server VM (build 13+33, mixed mode, sharing)
 ----
+
+=== 总结
+
+最终的备份链如下：
+
+image::VirtualBox/备份树.png[]
 
 ////
 === 配置【网卡2】固定 IP
