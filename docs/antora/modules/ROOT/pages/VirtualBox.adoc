@@ -181,6 +181,61 @@ OpenJDK Runtime Environment (build 13+33)
 OpenJDK 64-Bit Server VM (build 13+33, mixed mode, sharing)
 ----
 
+=== JDK8 + MySQL5.7 备份
+
+[source%nowrap,bash]
+----
+$ pwd
+/root
+
+# 安装 MySQL 源
+$ wget https://dev.mysql.com/get/mysql57-community-release-el7-11.noarch.rpm
+$ yum localinstall mysql57-community-release-el7-11.noarch.rpm
+$ yum repolist enabled | grep "mysql.*-community.*"
+
+# 安装 MySQL
+$ yum install -y mysql-community-server
+# 启动 MySQL 服务
+$ systemctl start mysqld
+# 查看 MySQL 状态
+$ systemctl status mysqld
+● mysqld.service - MySQL Server
+   Loaded: loaded (/usr/lib/systemd/system/mysqld.service; enabled; vendor preset: disabled)
+   Active: active (running) since 四 2021-01-28 10:32:18 CST; 3s ago
+     Docs: man:mysqld(8)
+           http://dev.mysql.com/doc/refman/en/using-systemd.html
+  Process: 1529 ExecStart=/usr/sbin/mysqld --daemonize --pid-file=/var/run/mysqld/mysqld.pid $MYSQLD_OPTS (code=exited, status=0/SUCCESS)
+  Process: 1480 ExecStartPre=/usr/bin/mysqld_pre_systemd (code=exited, status=0/SUCCESS)
+ Main PID: 1532 (mysqld)
+   CGroup: /system.slice/mysqld.service
+           └─1532 /usr/sbin/mysqld --daemonize --pid-file=/var/run/mysqld/mysqld.pid
+
+1月 28 10:32:14 localhost systemd[1]: Starting MySQL Server...
+1月 28 10:32:18 localhost systemd[1]: Started MySQL Server.
+
+# 设置开机启动
+$ systemctl enable mysqld
+$ systemctl daemon-reload
+
+# 修改 root 本地账户密码
+$ grep 'temporary password' /var/log/mysqld.log
+2021-01-28T02:32:15.550722Z 1 [Note] A temporary password is generated for root@localhost: %,G:?se7#.nX
+
+# 首次通过初始密码登录后，使用以下命令修改密码
+$ mysql -uroot -p
+mysql> ALTER USER 'root'@'localhost' IDENTIFIED BY '1qW@1qW@';
+
+# 修改 root 为允许远程连接
+mysql> use mysql;
+mysql> UPDATE user SET Host='%' WHERE User='root';
+mysql> flush privileges;
+
+# 临时关闭防火墙
+$ systemctl stop firewalld
+# 禁止开机启动
+$ systemctl disable firewalld
+----
+
 === 总结
 
 最终的备份链如下：
