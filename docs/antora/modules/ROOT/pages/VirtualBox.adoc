@@ -236,6 +236,12 @@ $ systemctl stop firewalld
 $ systemctl disable firewalld
 ----
 
+.默认配置文件路径：
+* 配置文件：/etc/my.cnf
+* 日志文件：/var/log/mysqld.log
+* 服务启动脚本：/usr/lib/systemd/system/mysqld.service
+* socket文件：/var/run/mysqld/mysqld.pid
+
 === 总结
 
 最终的备份链如下：
