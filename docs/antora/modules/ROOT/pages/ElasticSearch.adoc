@@ -1,0 +1,256 @@
+= ElasticSearch
+
+本文简单介绍如何在 xref::VirtualBox.adoc[] 上搭建 ElasticSearch 集群，使用的版本为 7.11.1。
+
+== 参考
+
+. https://www.elastic.co/cn[官网^]
+. https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-node.html[节点类型^]
+. https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-discovery-settings.html[集群配置^]
+
+== 集群规划
+
+|===
+|服务器 IP |主机名 |角色
+
+|192.168.150.20
+|elasticsearch-node01
+|所有
+
+|192.168.150.21
+|elasticsearch-node02
+|所有
+
+|192.168.150.22
+|elasticsearch-node03
+|所有
+|===
+
+== 创建节点
+
+先搭建出一个 node，然后复制出另外 2 个，再稍作修改。
+
+=== 创建虚拟机
+
+. 基于 JDK13 复制出 elasticsearch-node01
+. 启动 elasticsearch-node01
+. 使用命令 `ip addr` 查看 IP 地址为：192.168.150.20
+
+=== 配置虚拟机
+
+[source%nowrap,bash]
+----
+# 登陆 elasticsearch-node01
+$ ssh root@192.168.150.20
+
+# 设置主机名
+$ hostnamectl set-hostname elasticsearch-node01
+
+# 配置 hosts
+$ echo '192.168.150.20 elasticsearch-node01' >>/etc/hosts
+$ echo '192.168.150.21 elasticsearch-node02' >>/etc/hosts
+$ echo '192.168.150.22 elasticsearch-node03' >>/etc/hosts
+
+192.168.150.20 elasticsearch-node01
+192.168.150.21 elasticsearch-node02
+192.168.150.22 elasticsearch-node03
+
+# 临时关闭防火墙
+$ systemctl stop firewalld
+# 禁止开机启动
+$ systemctl disable firewalld
+----
+
+=== 安装
+
+[source%nowrap,bash]
+----
+#查看当前目录
+$ pwd
+/root
+
+# 获取安装包
+wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.11.1-x86_64.rpm
+# 安装
+$ yum install -y elasticsearch-7.11.1-x86_64.rpm
+# 可以使用 root 启动
+----
+
+=== 配置
+
+[source%nowrap,bash]
+----
+# 查看相关配置
+$ find / -name elasticsearch
+/etc/sysconfig/elasticsearch
+/etc/rc.d/init.d/elasticsearch
+/etc/elasticsearch
+/var/lib/elasticsearch
+/var/log/elasticsearch
+/usr/share/elasticsearch
+/usr/share/elasticsearch/bin/elasticsearch
+
+# 编辑配置文件
+$ vi /etc/elasticsearch/elasticsearch.yml
+network.bind_host: 0.0.0.0 # 设置任意IP地址都可以访问，默认只能本机访问
+network.publish_host: 192.168.150.20
+# 单节点启动
+discovery.type: single-node
+
+# 配置中文分词器
+[root@elasticsearch-node01 ~]# find / -name plugins
+/usr/share/elasticsearch/plugins
+[root@elasticsearch-node01 ~]# cd /usr/share/elasticsearch/plugins
+[root@elasticsearch-node01 ~]# mkdir ik && cd ik
+[root@elasticsearch-node01 ~]# wget https://github.com/medcl/elasticsearch-analysis-ik/releases/download/v7.11.1/elasticsearch-analysis-ik-7.11.1.zip
+[root@elasticsearch-node01 ik]# unzip elasticsearch-analysis-ik-7.11.1.zip
+----
+
+////
+# [1]: the default discovery settings are unsuitable for production use; at least one of [discovery.seed_hosts, discovery.seed_providers, cluster.initial_master_nodes] must be configured
+
+service elasticsearch stop
+rm -rf /var/lib/elasticsearch/* /var/log/elasticsearch/*
+vi /etc/elasticsearch/elasticsearch.yml
+service elasticsearch start
+tail -1000f /var/log/elasticsearch/elasticsearch.log
+
+# 查看日志
+# echo '' > /var/log/elasticsearch/elasticsearch.log
+# tail -1000f /var/log/elasticsearch/elasticsearch.log
+////
+
+
+=== 启动
+
+////
+yum 不需要 root 运行
+# 查看当前目录
+$ pwd
+/root/elasticsearch-7.11.1
+# 启动服务
+$ bin/elasticsearch
+can not run elasticsearch as root
+
+# 添加 es 用户
+$ adduser elasticuser
+$ passwd elasticuser
+# 输入密码：1qw2!QW@
+
+$ cp -R /root/elasticsearch-7.11.1 /home/elasticuser/elasticsearch-7.11.1
+$ chown elasticuser /home/elasticuser/elasticsearch-7.11.1 -R
+$ su - elasticuser
+
+# 启动成功
+[2021-02-25T12:02:11,767][INFO ][o.e.x.s.s.SecurityStatusChangeListener] [elasticsearch-node01] Active license is now [BASIC]; Security is disabled
+////
+
+[source%nowrap,bash]
+----
+$ service elasticsearch start
+$ service elasticsearch status
+● elasticsearch.service - Elasticsearch
+   Loaded: loaded (/usr/lib/systemd/system/elasticsearch.service; disabled; vendor preset: disabled)
+   Active: active (running) since 日 2021-02-28 16:51:56 CST; 3min 20s ago
+     Docs: https://www.elastic.co
+ Main PID: 4219 (java)
+   CGroup: /system.slice/elasticsearch.service
+           ├─4219 /usr/share/elasticsearch/jdk/bin/java -Xshare:auto -Des.networkaddress.cache.ttl=60 -Des.networkaddress.cache.negative.ttl=10 -XX:+Alway...
+           └─4378 /usr/share/elasticsearch/modules/x-pack-ml/platform/linux-x86_64/bin/controller
+
+2月 28 16:51:30 elasticsearch-node01 systemd[1]: Starting Elasticsearch...
+2月 28 16:51:56 elasticsearch-node01 systemd[1]: Started Elasticsearch.
+
+# 查看内存使用情况
+$ yum -y install epel-release
+$ yum -y install htop
+$ htop
+----
+
+打开浏览器，访问 http://elasticsearch-node01:9200
+
+[source%nowrap,json]
+----
+{
+"name": "elasticsearch-node01",
+"cluster_name": "elasticsearch",
+"cluster_uuid": "JWJajbuuSBWuIoV4DGgMDg",
+"version": {
+    "number": "7.11.1",
+    "build_flavor": "default",
+    "build_type": "rpm",
+    "build_hash": "ff17057114c2199c9c1bbecc727003a907c0db7a",
+    "build_date": "2021-02-15T13:44:09.394032Z",
+    "build_snapshot": false,
+    "lucene_version": "8.7.0",
+    "minimum_wire_compatibility_version": "6.8.0",
+    "minimum_index_compatibility_version": "6.0.0-beta1"
+  },
+"tagline": "You Know, for Search"
+}
+----
+
+== 复制节点
+
+[source%nowrap,bash]
+----
+# elasticsearch-node01 从单点配置改为集群
+vi /etc/elasticsearch/elasticsearch.yml
+#discovery.type: single-node
+discovery.seed_hosts:
+  - elasticsearch-node01
+  - elasticsearch-node02
+  - elasticsearch-node03
+cluster.initial_master_nodes:
+  - elasticsearch-node01
+  - elasticsearch-node02
+  - elasticsearch-node03
+----
+
+基于 elasticsearch-node01 复制出 elasticsearch-node02、elasticsearch-node03 并做相应修改：
+
+[source%nowrap,bash]
+----
+# 配置 elasticsearch-node02
+$ hostnamectl set-hostname elasticsearch-node02
+$ vi /etc/elasticsearch/elasticsearch.yml
+node.name: elasticsearch-node02
+network.publish_host: 192.168.150.21
+
+# 配置 elasticsearch-node03
+$ hostnamectl set-hostname elasticsearch-node03
+$ vi /etc/elasticsearch/elasticsearch.yml
+node.name: elasticsearch-node03
+network.publish_host: 192.168.150.22
+----
+
+== 启动服务
+
+[source%nowrap,bash]
+----
+# 依次在 3 个节点上启动服务
+$ service elasticsearch start
+----
+
+打开浏览器，访问 http://elasticsearch-node01:9200/_cluster/health?pretty
+
+[source%nowrap,json]
+----
+{
+  "cluster_name" : "elasticsearch",
+  "status" : "green",
+  "timed_out" : false,
+  "number_of_nodes" : 3,
+  "number_of_data_nodes" : 3,
+  "active_primary_shards" : 0,
+  "active_shards" : 0,
+  "relocating_shards" : 0,
+  "initializing_shards" : 0,
+  "unassigned_shards" : 0,
+  "delayed_unassigned_shards" : 0,
+  "number_of_pending_tasks" : 0,
+  "number_of_in_flight_fetch" : 0,
+  "task_max_waiting_in_queue_millis" : 0,
+  "active_shards_percent_as_number" : 100.0
+}
+----
