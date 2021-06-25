@@ -234,6 +234,8 @@ $ service elasticsearch start
 
 打开浏览器，访问 http://elasticsearch-node01:9200/_cluster/health?pretty
 
+// http://elasticsearch-node01:9200/_cat/indices
+
 [source%nowrap,json]
 ----
 {

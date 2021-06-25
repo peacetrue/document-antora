@@ -1,0 +1,87 @@
+= SonarQube
+
+
+本文简单介绍如何在 xref::VirtualBox.adoc[] 上搭建 SonarQube 服务端，使用的版本为 8.6 。
+
+== 参考
+
+* http://www.sonarqube.org[官网^]
+
+== 主机规划
+
+* IP 地址： 192.168.150.18
+* 节点名称： sonarqube-node01
+* IP 地址： http://192.168.150.18:9000
+
+== 创建虚拟机
+
+. 基于 JDK13+PostgreSQL12 复制出 sonarqube-node01
+. 启动 sonarqube-node01
+. 使用命令 `ip addr` 查看 IP 地址为：192.168.150.18
+
+== 配置虚拟机
+
+[source%nowrap,bash]
+----
+# 登陆 sonarqube-node01
+$ ssh root@192.168.150.18
+
+# 设置主机名
+$ hostnamectl set-hostname sonarqube-node01
+
+# 配置 hosts
+$ echo '192.168.150.18 sonarqube-node01' >>/etc/hosts
+
+# 临时关闭防火墙
+$ systemctl stop firewalld
+# 禁止开机启动
+$ systemctl disable firewalld
+----
+
+== 安装
+
+[source%nowrap,bash]
+----
+$ cd /opt
+
+# 获取【社区版】安装包
+$ wget https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-8.6.0.39681.zip
+
+# 解压安装包
+$ yum install -y unzip
+$ unzip sonarqube-8.6.0.39681.zip
+$ cd sonarqube-8.6.0.39681
+
+# 配置全局命令
+$ echo 'export SONARQUBE_HOME=/opt/sonarqube-8.6.0.39681'>>~/.bash_profile
+$ echo 'export PATH=$PATH:$SONARQUBE_HOME/bin/linux-x86-64'>>~/.bash_profile
+$ source ~/.bash_profile
+
+# 配置数据库连接
+vi $SONARQUBE_HOME/conf/sonar.properties
+sonar.jdbc.username=postgres
+sonar.jdbc.password=123456
+sonar.jdbc.url=jdbc:postgresql://localhost/sonarqube
+
+# java.lang.RuntimeException: can not run elasticsearch as root
+adduser sonar
+passwd  sonar
+1qw2!QW@
+chown -R sonar /opt/sonarqube-8.6.0.39681
+
+echo 'fs.file-max = 65535' >>/etc/sysctl.conf
+echo 'vm.max_map_count = 262144' >>/etc/sysctl.conf
+
+vi /etc/security/limits.conf
+cat /etc/security/limits.conf
+
+
+# 启动服务
+sonar.sh start
+#Starting SonarQube...
+#Started SonarQube.
+sonar.sh stop
+
+# http://sonarqube-node01:9000
+# 账号/密码：admin/admin
+----

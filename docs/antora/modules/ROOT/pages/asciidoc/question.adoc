@@ -1,0 +1,18 @@
+= 问题汇总
+
+== 角标如何表示
+
+https://docs.asciidoctor.org/asciidoc/latest/text/subscript-and-superscript/
+
+* 上标：`H~2~O`
+* 下标：`E=mc^2^`
+
+== 批注
+
+https://docs.asciidoctor.org/asciidoc/latest/macros/footnote/
+
+评价点什么。footnote:[可以再改进]
+
+== **
+
+{asterisk}{asterisk} 如何转义？使用占位符，\{asterisk}\{asterisk}={asterisk}{asterisk}。

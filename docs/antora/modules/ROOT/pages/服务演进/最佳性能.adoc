@@ -1,0 +1,128 @@
+= 测试网站最佳性能
+
+本文简单分析如何测试一个网站的最佳性能。
+
+== 预测
+
+对于一个给定的网站，存在一个能够承受的最大 QPS（MSQPS）。可以通过不断提高客户端的 QPS（CQPS），测出 MSQPS。理论上 CQPS 与 SQPS 之间存在如下关系：
+
+. 当 CQPS &le; MSQPS 时，服务端能够及时处理客户端的所有请求，此时 SQPS = CQPS
+. 当 CQPS > MSQPS 时，服务端不能及时处理客户端的所有请求，不能处理的请求会被堆积，服务端需要分出部分资源丢弃（或其他策略）溢出的请求，导致 MSQPS 略微走低
+
+== 环境准备
+
+=== 客户端
+
+Mac 电脑 16 核 64G：
+
+.系统运行状况
+image::服务演进/image-2021-05-16-12-10-16-758.png[]
+
+=== 测试工具
+
+测试工具选用 JMeter 5.4.1。
+
+//配置 JVM 堆：export HEAP="-Xms2g -Xmx2g -XX:MaxMetaspaceSize=256m"
+
+性能测试命令：
+
+`jmeter -n -t webflux.jmx -l result.csv -e -o report`
+//`JVM_ARGS="-Xms2048m -Xmx2048m -XX:MaxMetaspaceSize=256m" jmeter -n -t webflux.jmx -l result.csv -e -o report`
+
+.预估 CQPS
+* RT（request time）：客户端每次请求耗时毫秒数
+* TC（thread count）：线程数
+* CQPS：TC * (1000 / RT) = 1.6W / RT
+
+JMeter 使用 BIO 模型，线程发送请求后，需等待服务端返回，才再次发送请求。此模型可以测出 MSQPS，但无法压垮服务端。如果使用 NIO 模型，不需要等待服务端返回，从而将超过 MSQPS 的请求发送到服务端。
+
+.线程数怎么选
+* 最低为核心数：16
+* 最高值应该能让 CPU 利用率达到 100%
+
+image::服务演进/image-2021-05-16-14-19-31-158.png[]
+
+BIO 模型下总是达不到。
+
+.持续时间怎么选
+SQPS 走势能够趋于平稳的波浪线，而非一条斜线。
+
+=== 应用
+
+一个简单的 webflux 应用 spring-boot-webflux-1.0.0-SNAPSHOT.jar（19M）：
+
+* org.springframework.boot:spring-boot-starter-webflux:2.4.5
+* org.springframework.boot:spring-boot-starter-actuator:2.4.5
+
+测试接口使用 */actuator*，此接口不包含任何逻辑处理，响应时间应该很快。
+
+=== 服务端
+
+服务端使用阿里云服务器： 4 核 8G 带宽 5Mbps = 640KByte/s
+
+ 1M 宽带下载速度计算转换：1Mbit/s = 1024Kbit/s = 128KByte/s
+
+image::服务演进/image-2021-05-17-12-55-07-879.png[]
+
+image::服务演进/image-2021-05-16-11-56-21-197.png[]
+
+image::服务演进/image-2021-05-17-12-50-12-382.png[]
+
+== 本地测试
+
+先在本地进行测试。
+
+=== 16-500
+
+使用 16 线程，持续请求 500 秒。测试结果：MSQPS 约为 3.6 W。
+
+.CQPS 走势
+image::服务演进/image-2021-05-16-13-20-20-521.png[]
+
+.SQPS 走势
+image::服务演进/image-2021-05-16-13-21-01-328.png[]
+
+CQPS 走势 和 SQPS 走势 完全一致。其中包括 3 个阶段：启动期、稳定期和结束期。
+
+== 服务端测试
+
+JVM 运行时信息：
+
+image::服务演进/image-2021-05-16-07-32-54-799.png[]
+
+网络耗时约为 200 毫秒。
+
+=== 1-100
+
+使用 1 线程，持续请求 100 秒。测试结果：MSQPS 约为 56。
+
+每个请求平均耗时为：20 ms。
+
+=== 16-100
+
+使用 16 线程，持续请求 100 秒。测试结果：MSQPS 约为 700。
+
+.CQPS 走势
+image::服务演进/image-2021-05-16-13-59-10-991.png[]
+
+.SQPS 走势
+image::服务演进/image-2021-05-16-13-59-30-514.png[]
+
+=== 100-500
+
+使用 100 线程，持续请求 100 秒。测试结果：MSQPS 约为 1390。
+
+== 递增测试
+
+. 每 1 秒启动 10 个线程
+. 保持 5 秒后，继续执行步骤 1
+. 总线程数达到 300 后，保持 60 秒
+. 最后每 1 秒停止 10 个线程
+. 所有线程停止完毕，运行结束
+
+.线程数走势图
+image::服务演进/image-2021-05-16-08-24-24-253.png[]
+
+== 注意事项
+
+* JMeter 报表以分钟为单位绘图，测试时间越长，报表看起来越符合变化趋势，建议 10 分钟起步。

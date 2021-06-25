@@ -1,6 +1,6 @@
-= Hadoop
+= LVS
 
-本文简单介绍如何在 xref::VirtualBox.adoc[] 上搭建 Hadoop 集群，使用的版本为 3.1.4。
+本文简单介绍如何在 xref::VirtualBox.adoc[] 上搭建 LVS 集群，使用的版本为 3.1.4。
 
 == 集群规划
 
@@ -8,27 +8,27 @@
 |服务器 IP |主机名 |HDFS |Yarn
 
 |192.168.150.5
-|hadoop-node01
+|lvs-node01
 |NameNode
 |ResourceManager
 
 |192.168.150.6
-|hadoop-node02
+|lvs-node02
 |SecondaryNameNode
 |
 
 |192.168.150.7
-|hadoop-node03
+|lvs-node03
 |DataNode
 |NodeManager
 
 |192.168.150.8
-|hadoop-node04
+|lvs-node04
 |DataNode
 |NodeManager
 
 |192.168.150.9
-|hadoop-node05
+|lvs-node05
 |DataNode
 |NodeManager
 |===
@@ -39,26 +39,26 @@
 
 === 创建虚拟机
 
-. 基于 JDK8 复制出 hadoop-node01
-. 启动 hadoop-node01
+. 基于 JDK8 复制出 lvs-node01
+. 启动 lvs-node01
 . 使用命令 `ip addr` 查看 IP 地址为：192.168.150.5
 
 === 配置虚拟机
 
 [source%nowrap,bash]
 ----
-# 登陆 hadoop-node01
+# 登陆 lvs-node01
 $ ssh root@192.168.150.5
 
 # 设置主机名
-$ hostnamectl set-hostname hadoop-node01
+$ hostnamectl set-hostname lvs-node01
 
 # 配置 hosts
-$ echo '192.168.150.5 hadoop-node01' >>/etc/hosts
-$ echo '192.168.150.6 hadoop-node02' >>/etc/hosts
-$ echo '192.168.150.7 hadoop-node03' >>/etc/hosts
-$ echo '192.168.150.8 hadoop-node04' >>/etc/hosts
-$ echo '192.168.150.9 hadoop-node05' >>/etc/hosts
+$ echo '192.168.150.5 lvs-node01' >>/etc/hosts
+$ echo '192.168.150.6 lvs-node02' >>/etc/hosts
+$ echo '192.168.150.7 lvs-node03' >>/etc/hosts
+$ echo '192.168.150.8 lvs-node04' >>/etc/hosts
+$ echo '192.168.150.9 lvs-node05' >>/etc/hosts
 
 # 临时关闭防火墙
 $ systemctl stop firewalld
@@ -67,11 +67,11 @@ $ systemctl disable firewalld
 ----
 
 ////
-192.168.150.5 hadoop-node01
-192.168.150.6 hadoop-node02
-192.168.150.7 hadoop-node03
-192.168.150.8 hadoop-node04
-192.168.150.9 hadoop-node05
+192.168.150.5 lvs-node01
+192.168.150.6 lvs-node02
+192.168.150.7 lvs-node03
+192.168.150.8 lvs-node04
+192.168.150.9 lvs-node05
 ////
 
 === 安装
@@ -83,24 +83,24 @@ $ pwd
 /root
 
 # 获取安装包
-$ wget https://downloads.apache.org/hadoop/core/hadoop-3.1.4/hadoop-3.1.4.tar.gz
+$ wget https://downloads.apache.org/lvs/core/lvs-3.1.4/lvs-3.1.4.tar.gz
 
 # 解压安装包
-$ tar -zxvf hadoop-3.1.4.tar.gz
+$ tar -zxvf lvs-3.1.4.tar.gz
 
 # 配置全局命令
-$ echo 'export HADOOP_HOME=/root/hadoop-3.1.4'>>~/.bash_profile
-$ echo 'export PATH=$PATH:$HADOOP_HOME/bin:$HADOOP_HOME/sbin'>>~/.bash_profile
+$ echo 'export lvs_HOME=/root/lvs-3.1.4'>>~/.bash_profile
+$ echo 'export PATH=$PATH:$lvs_HOME/bin:$lvs_HOME/sbin'>>~/.bash_profile
 $ source ~/.bash_profile
 
 # 检查安装情况
-$ hadoop version
-Hadoop 3.1.4
-Source code repository https://github.com/apache/hadoop.git -r 1e877761e8dadd71effef30e592368f7fe66a61b
+$ lvs version
+lvs 3.1.4
+Source code repository https://github.com/apache/lvs.git -r 1e877761e8dadd71effef30e592368f7fe66a61b
 Compiled by gabota on 2020-07-21T08:05Z
 Compiled with protoc 2.5.0
 From source with checksum 38405c63945c88fdf7a6fe391494799b
-This command was run using /root/hadoop-3.1.4/share/hadoop/common/hadoop-common-3.1.4.jar
+This command was run using /root/lvs-3.1.4/share/lvs/common/lvs-common-3.1.4.jar
 ----
 
 === 创建目录
@@ -109,30 +109,30 @@ This command was run using /root/hadoop-3.1.4/share/hadoop/common/hadoop-common-
 
 [source%nowrap,bash]
 ----
-$ cd $HADOOP_HOME
+$ cd $lvs_HOME
 $ mkdir data & cd data
 $ mkdir temp var dfs dfs/name dfs/data
 ----
 
 === 修改配置
 
-配置文件位于 *hadoop-3.1.4/etc/hadoop* 目录中，编辑各个配置文件，加入以下配置内容：
+配置文件位于 *lvs-3.1.4/etc/lvs* 目录中，编辑各个配置文件，加入以下配置内容：
 
 .workers
 [source%nowrap,workers]
 ----
 // 删除 localhost
 // 添加从节点主机名
-hadoop-node03
-hadoop-node04
-hadoop-node05
+lvs-node03
+lvs-node04
+lvs-node05
 ----
 
-.hadoop-env.sh
+.lvs-env.sh
 [source%nowrap,bash]
 ----
 export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.275.b01-0.el7_9.x86_64/jre
-export HADOOP_HOME=/root/hadoop-3.1.4
+export lvs_HOME=/root/lvs-3.1.4
 
 # root 用户需要做以下配置
 export HDFS_NAMENODE_USER=root
@@ -149,12 +149,12 @@ export YARN_NODEMANAGER_USER=root
     <!--指定集群的文件系统类型：分布式文件系统-->
     <property>
         <name>fs.defaultFS</name>
-        <value>hdfs://hadoop-node01:9000</value>
+        <value>hdfs://lvs-node01:9000</value>
     </property>
     <!--指定临时文件存储目录-->
     <property>
-        <name>hadoop.tmp.dir</name>
-        <value>/root/hadoop-3.1.4/data/tmp</value>
+        <name>lvs.tmp.dir</name>
+        <value>/root/lvs-3.1.4/data/tmp</value>
     </property>
 </configuration>
 ----
@@ -165,22 +165,22 @@ export YARN_NODEMANAGER_USER=root
 <configuration>
     <property>
        <name>dfs.name.dir</name>
-       <value>/root/hadoop-3.1.4/data/dfs/name</value>
+       <value>/root/lvs-3.1.4/data/dfs/name</value>
        <description>Path on the local filesystem where theNameNode stores the namespace and transactions logs persistently.</description>
     </property>
     <property>
        <name>dfs.data.dir</name>
-       <value>/root/hadoop-3.1.4/data/dfs/data</value>
+       <value>/root/lvs-3.1.4/data/dfs/data</value>
        <description>Comma separated list of paths on the localfilesystem of a DataNode where it should store its blocks.</description>
     </property>
     <!--指定 namenode 的访问地址和端口-->
     <property>
         <name>dfs.namenode.http-address</name>
-        <value>hadoop-node01:50070</value>
+        <value>lvs-node01:50070</value>
     </property>
     <property>
         <name>dfs.namenode.secondary.http-address</name>
-        <value>hadoop-node02:50090</value>
+        <value>lvs-node02:50090</value>
     </property>
     <property>
        <name>dfs.replication</name>
@@ -200,16 +200,16 @@ export YARN_NODEMANAGER_USER=root
 <configuration>
     <property>
         <name>yarn.resourcemanager.hostname</name>
-        <value>hadoop-node01</value>
+        <value>lvs-node01</value>
     </property>
     <property>
         <name>yarn.nodemanager.aux-services</name>
         <value>mapreduce_shuffle</value>
     </property>
-    <!--通过 hadoop classpath 获取-->
+    <!--通过 lvs classpath 获取-->
     <property>
         <name>yarn.application.classpath</name>
-        <value>/root/hadoop-3.1.4/etc/hadoop:/root/hadoop-3.1.4/share/hadoop/common/lib/*:/root/hadoop-3.1.4/share/hadoop/common/*:/root/hadoop-3.1.4/share/hadoop/hdfs:/root/hadoop-3.1.4/share/hadoop/hdfs/lib/*:/root/hadoop-3.1.4/share/hadoop/hdfs/*:/root/hadoop-3.1.4/share/hadoop/mapreduce/lib/*:/root/hadoop-3.1.4/share/hadoop/mapreduce/*:/root/hadoop-3.1.4/share/hadoop/yarn:/root/hadoop-3.1.4/share/hadoop/yarn/lib/*:/root/hadoop-3.1.4/share/hadoop/yarn/*</value>
+        <value>/root/lvs-3.1.4/etc/lvs:/root/lvs-3.1.4/share/lvs/common/lib/*:/root/lvs-3.1.4/share/lvs/common/*:/root/lvs-3.1.4/share/lvs/hdfs:/root/lvs-3.1.4/share/lvs/hdfs/lib/*:/root/lvs-3.1.4/share/lvs/hdfs/*:/root/lvs-3.1.4/share/lvs/mapreduce/lib/*:/root/lvs-3.1.4/share/lvs/mapreduce/*:/root/lvs-3.1.4/share/lvs/yarn:/root/lvs-3.1.4/share/lvs/yarn/lib/*:/root/lvs-3.1.4/share/lvs/yarn/*</value>
     </property>
 </configuration>
 ----
@@ -220,11 +220,11 @@ export YARN_NODEMANAGER_USER=root
 <configuration>
     <property>
         <name>mapred.job.tracker</name>
-        <value>hadoop-node01:49001</value>
+        <value>lvs-node01:49001</value>
     </property>
     <property>
         <name>mapred.local.dir</name>
-        <value>/root/hadoop-3.1.4/data/var</value>
+        <value>/root/lvs-3.1.4/data/var</value>
     </property>
     <property>
         <name>mapreduce.framework.name</name>
@@ -241,7 +241,7 @@ export YARN_NODEMANAGER_USER=root
 $ hdfs namenode -format
 
 # 启动所有服务
-$ /root/hadoop-3.1.4/sbin/start-all.sh
+$ /root/lvs-3.1.4/sbin/start-all.sh
 Starting namenodes on [node01]
 上一次登录：日 1月 24 03:07:27 CST 2021pts/1 上
 Starting datanodes
@@ -269,24 +269,24 @@ node04: ssh: connect to host node04 port 22: No route to host
 [source%nowrap,bash]
 ----
 # 设置各节点主机名
-$ hostnamectl set-hostname hadoop-node0?
+$ hostnamectl set-hostname lvs-node0?
 
 # 所有节点都启动后，在 node01 上配置 ssh 免密登陆
 $ ssh-keygen -t rsa
 $ cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
-$ scp /root/.ssh/id_rsa.pub root@hadoop-node01:/root/.ssh/authorized_keys
-$ scp /root/.ssh/id_rsa.pub root@hadoop-node02:/root/.ssh/authorized_keys
-$ scp /root/.ssh/id_rsa.pub root@hadoop-node03:/root/.ssh/authorized_keys
-$ scp /root/.ssh/id_rsa.pub root@hadoop-node04:/root/.ssh/authorized_keys
-$ scp /root/.ssh/id_rsa.pub root@hadoop-node05:/root/.ssh/authorized_keys
+$ scp /root/.ssh/id_rsa.pub root@lvs-node01:/root/.ssh/authorized_keys
+$ scp /root/.ssh/id_rsa.pub root@lvs-node02:/root/.ssh/authorized_keys
+$ scp /root/.ssh/id_rsa.pub root@lvs-node03:/root/.ssh/authorized_keys
+$ scp /root/.ssh/id_rsa.pub root@lvs-node04:/root/.ssh/authorized_keys
+$ scp /root/.ssh/id_rsa.pub root@lvs-node05:/root/.ssh/authorized_keys
 ----
 
 ////
-scp /root/.ssh/id_rsa.pub root@hadoop-node01:/root/.ssh/authorized_keys
-scp /root/.ssh/id_rsa.pub root@hadoop-node02:/root/.ssh/authorized_keys
-scp /root/.ssh/id_rsa.pub root@hadoop-node03:/root/.ssh/authorized_keys
-scp /root/.ssh/id_rsa.pub root@hadoop-node04:/root/.ssh/authorized_keys
-scp /root/.ssh/id_rsa.pub root@hadoop-node05:/root/.ssh/authorized_keys
+scp /root/.ssh/id_rsa.pub root@lvs-node01:/root/.ssh/authorized_keys
+scp /root/.ssh/id_rsa.pub root@lvs-node02:/root/.ssh/authorized_keys
+scp /root/.ssh/id_rsa.pub root@lvs-node03:/root/.ssh/authorized_keys
+scp /root/.ssh/id_rsa.pub root@lvs-node04:/root/.ssh/authorized_keys
+scp /root/.ssh/id_rsa.pub root@lvs-node05:/root/.ssh/authorized_keys
 ////
 
 == 启动服务
@@ -295,23 +295,23 @@ scp /root/.ssh/id_rsa.pub root@hadoop-node05:/root/.ssh/authorized_keys
 
 [source%nowrap,bash]
 ----
-$ /root/hadoop-3.1.4/sbin/start-all.sh
-Starting namenodes on [hadoop-node01]
+$ /root/lvs-3.1.4/sbin/start-all.sh
+Starting namenodes on [lvs-node01]
 上一次登录：日 1月 24 18:31:47 CST 2021从 192.168.150.1pts/1 上
-hadoop-node01: Warning: Permanently added 'hadoop-node01' (ECDSA) to the list of known hosts.
+lvs-node01: Warning: Permanently added 'lvs-node01' (ECDSA) to the list of known hosts.
 Starting datanodes
 上一次登录：日 1月 24 18:44:09 CST 2021pts/1 上
-hadoop-node03: Warning: Permanently added 'hadoop-node03' (ECDSA) to the list of known hosts.
-hadoop-node04: Warning: Permanently added 'hadoop-node04' (ECDSA) to the list of known hosts.
-hadoop-node05: Warning: Permanently added 'hadoop-node05' (ECDSA) to the list of known hosts.
-Starting secondary namenodes [hadoop-node02]
+lvs-node03: Warning: Permanently added 'lvs-node03' (ECDSA) to the list of known hosts.
+lvs-node04: Warning: Permanently added 'lvs-node04' (ECDSA) to the list of known hosts.
+lvs-node05: Warning: Permanently added 'lvs-node05' (ECDSA) to the list of known hosts.
+Starting secondary namenodes [lvs-node02]
 上一次登录：日 1月 24 18:44:11 CST 2021pts/1 上
-hadoop-node02: Warning: Permanently added 'hadoop-node02' (ECDSA) to the list of known hosts.
+lvs-node02: Warning: Permanently added 'lvs-node02' (ECDSA) to the list of known hosts.
 Starting resourcemanager
 上一次登录：日 1月 24 18:44:15 CST 2021pts/1 上
 Starting nodemanagers
 上一次登录：日 1月 24 18:44:20 CST 2021pts/1 上
-# /root/hadoop-3.1.4/sbin/stop-all.sh
+# /root/lvs-3.1.4/sbin/stop-all.sh
 
 # 查看启动进程
 $ ps -ef | grep java
@@ -334,13 +334,13 @@ tcp        0      0 192.168.150.5:9000      192.168.150.9:33050     ESTABLISHED 
 
 == 查看 HDFS
 
-打开网址： http://hadoop-node01:50070
+打开网址： http://lvs-node01:50070
 
-image::Hadoop/hdfs.png[]
+image::lvs/hdfs.png[]
 
 == 查看 Yarn 集群
 
-打开网址： http://hadoop-node01:8088
+打开网址： http://lvs-node01:8088
 
-image::Hadoop/yarn.png[]
+image::lvs/yarn.png[]
 

@@ -91,6 +91,8 @@ image::VirtualBox/添加网卡2后网络情况.png[]
 $ ssh-keygen -t rsa
 $ cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
 $ ssh-copy-id -i ~/.ssh/id_rsa.pub root@192.168.150.3
+$ ssh-copy-id -i ~/.ssh/id_rsa.pub root@47.112.0.204
+$ ssh-copy-id -i ~/.ssh/id_rsa.pub $ali_ssh
 ----
 
 虽然是动态分配的 IP ，使用中没有发现 IP 地址变化的情况。
@@ -103,7 +105,7 @@ $ ssh-copy-id -i ~/.ssh/id_rsa.pub root@192.168.150.3
 . 登陆虚拟机 *centos7 副本*：`ssh root@192.168.150.4`
 . 虚拟机 *centos7* 和 *centos7 副本* 之间，可以使用 IP *192.168.150.3* 和 *192.168.150.4* 相互连接
 
-== 备份
+== 各种备份
 
 之前已经准备了 2 个备份：
 
@@ -114,7 +116,7 @@ $ ssh-copy-id -i ~/.ssh/id_rsa.pub root@192.168.150.3
 
 === 最新环境
 
-基于【动态IP】备份，使用命令 `yum -y update` 更新系统到最新状态，然后创建【最新环境】备份，并备注日期 *2021-01-23* 。
+基于【动态IP】备份，使用命令 `yum -y update` 更新系统到最新状态【7.9.2009】，然后创建【最新环境】备份，并备注日期 *2021-01-23* 。
 
 === 基础命令
 
@@ -183,6 +185,8 @@ OpenJDK 64-Bit Server VM (build 13+33, mixed mode, sharing)
 
 === JDK8 + MySQL5.7 备份
 
+基于 JDK8 备份，添加 MySQL5.7 服务。
+
 [source%nowrap,bash]
 ----
 $ pwd
@@ -240,7 +244,94 @@ $ systemctl disable firewalld
 * 配置文件：/etc/my.cnf
 * 日志文件：/var/log/mysqld.log
 * 服务启动脚本：/usr/lib/systemd/system/mysqld.service
-* socket文件：/var/run/mysqld/mysqld.pid
+* socket 文件：/var/run/mysqld/mysqld.pid
+
+=== JDK13 + PostgreSQL12 备份
+
+基于 JDK13 备份，安装 PostgreSQL12。
+
+[source%nowrap,bash]
+----
+# 安装
+sudo yum install -y https://download.postgresql.org/pub/repos/yum/reporpms/EL-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+sudo yum install -y postgresql12-server
+
+# 初始化
+sudo /usr/pgsql-12/bin/postgresql-12-setup initdb
+
+# 启动
+sudo systemctl enable postgresql-12
+sudo systemctl start postgresql-12
+
+# 修改密码
+# 进入 PostgreSQL 命令行
+su postgres
+# 启动SQL Shell
+psql
+# 修改密码
+ALTER USER postgres WITH PASSWORD '123456';
+# 用户名/密码：postgres/123456
+
+# 配置远程访问
+# 开放端口
+sudo firewall-cmd --add-port=5432/tcp --permanent
+sudo firewall-cmd --reload
+# 修改IP绑定
+vi /var/lib/pgsql/12/data/postgresql.conf
+#listen_addresses='*'
+# 允许所有IP访问
+vi /var/lib/pgsql/12/data/pg_hba.conf
+#host  all  all 0.0.0.0/0 md5
+sudo systemctl restart postgresql-12
+
+# 测试
+telnet 192.168.150.3 5432
+----
+
+=== docker
+
+基于 【基础命令】 备份，安装 https://docs.docker.com/engine/install/centos/[docker^]。
+
+[source%nowrap,bash]
+----
+# Uninstall old versions
+yum remove docker \
+      docker-client \
+      docker-client-latest \
+      docker-common \
+      docker-latest \
+      docker-latest-logrotate \
+      docker-logrotate \
+      docker-engine
+
+# SET UP THE REPOSITORY
+$ sudo yum install -y yum-utils
+$ sudo yum-config-manager \
+    --add-repo \
+    https://download.docker.com/linux/centos/docker-ce.repo
+
+yum-config-manager --enable docker-ce-nightly
+yum-config-manager --enable docker-ce-test
+
+# INSTALL DOCKER ENGINE 18.09.1
+yum install docker-ce-18.09.1 docker-ce-cli-18.09.1 containerd.io
+
+# Start Docker
+systemctl start docker
+systemctl enable docker
+
+# Verify that Docker Engine is installed correctly by running the hello-world image.
+docker run hello-world
+
+
+# 下载最新版本的 docker-compose 到 /usr/bin 目录下
+wget https://github.com/docker/compose/releases/download/1.28.2/docker-compose-Linux-x86_64
+
+curl -L https://github.com/docker/compose/releases/download/1.28.2/docker-compose-`uname -s`-`uname -m` -o /usr/bin/docker-compose
+
+# 给 docker-compose 授权
+chmod +x /usr/bin/docker-compose
+----
 
 === 总结
 
@@ -269,4 +360,5 @@ HWADDR=08:00:27:7C:8F:C3 #网卡的MAC地址，需与图 2 3中的MAC一致
 ----
 
 ////
+
 

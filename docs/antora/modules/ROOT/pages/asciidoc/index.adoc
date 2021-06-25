@@ -1,0 +1,14 @@
+= 概述
+
+一个快速的文本处理器和发布工具链，用于将 AsciiDoc 转换为 HTML5、DocBook 等。
+
+参考：
+
+. https://asciidoctor.org/
+. https://docs.asciidoctor.org/
+
+== AsciiDoc Home Page
+
+原文地址： https://asciidoc.org/
+
+AsciiDoc 是一种文本文档格式，用于编写笔记、文档、文章、书籍、电子书、幻灯片、网页、手册页和博客。 AsciiDoc 文件可以翻译成多种格式，包括 HTML、PDF、EPUB、手册页。

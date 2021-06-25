@@ -1,0 +1,346 @@
+= Hadoop
+
+本文简单介绍如何在 xref::VirtualBox.adoc[] 上搭建 Hadoop 集群，使用的版本为 3.1.4。
+
+== 集群规划
+
+|===
+|服务器 IP |主机名 |HDFS |Yarn
+
+|192.168.150.5
+|hadoop-node01
+|NameNode
+|ResourceManager
+
+|192.168.150.6
+|hadoop-node02
+|SecondaryNameNode
+|
+
+|192.168.150.7
+|hadoop-node03
+|DataNode
+|NodeManager
+
+|192.168.150.8
+|hadoop-node04
+|DataNode
+|NodeManager
+
+|192.168.150.9
+|hadoop-node05
+|DataNode
+|NodeManager
+|===
+
+== 创建节点
+
+先搭建出一个 node，然后复制出另外 4 个，再稍作修改。
+
+=== 创建虚拟机
+
+. 基于 JDK8 复制出 hadoop-node01
+. 启动 hadoop-node01
+. 使用命令 `ip addr` 查看 IP 地址为：192.168.150.5
+
+=== 配置虚拟机
+
+[source%nowrap,bash]
+----
+# 登陆 hadoop-node01
+$ ssh root@192.168.150.5
+
+# 设置主机名
+$ hostnamectl set-hostname hadoop-node01
+
+# 配置 hosts
+$ echo '192.168.150.5 hadoop-node01' >>/etc/hosts
+$ echo '192.168.150.6 hadoop-node02' >>/etc/hosts
+$ echo '192.168.150.7 hadoop-node03' >>/etc/hosts
+$ echo '192.168.150.8 hadoop-node04' >>/etc/hosts
+$ echo '192.168.150.9 hadoop-node05' >>/etc/hosts
+
+# 临时关闭防火墙
+$ systemctl stop firewalld
+# 禁止开机启动
+$ systemctl disable firewalld
+----
+
+////
+192.168.150.5 hadoop-node01
+192.168.150.6 hadoop-node02
+192.168.150.7 hadoop-node03
+192.168.150.8 hadoop-node04
+192.168.150.9 hadoop-node05
+////
+
+=== 安装
+
+[source%nowrap,bash]
+----
+#查看当前目录
+$ pwd
+/root
+
+# 获取安装包
+$ wget https://downloads.apache.org/hadoop/core/hadoop-3.1.4/hadoop-3.1.4.tar.gz
+
+# 解压安装包
+$ tar -zxvf hadoop-3.1.4.tar.gz
+
+# 配置全局命令
+$ echo 'export HADOOP_HOME=/root/hadoop-3.1.4'>>~/.bash_profile
+$ echo 'export PATH=$PATH:$HADOOP_HOME/bin:$HADOOP_HOME/sbin'>>~/.bash_profile
+$ source ~/.bash_profile
+
+# 检查安装情况
+$ hadoop version
+Hadoop 3.1.4
+Source code repository https://github.com/apache/hadoop.git -r 1e877761e8dadd71effef30e592368f7fe66a61b
+Compiled by gabota on 2020-07-21T08:05Z
+Compiled with protoc 2.5.0
+From source with checksum 38405c63945c88fdf7a6fe391494799b
+This command was run using /root/hadoop-3.1.4/share/hadoop/common/hadoop-common-3.1.4.jar
+----
+
+=== 创建目录
+
+创建以下目录，共后续配置时使用。
+
+[source%nowrap,bash]
+----
+$ cd $HADOOP_HOME
+$ mkdir data & cd data
+$ mkdir temp var dfs dfs/name dfs/data
+----
+
+=== 修改配置
+
+配置文件位于 *hadoop-3.1.4/etc/hadoop* 目录中，编辑各个配置文件，加入以下配置内容：
+
+.workers
+[source%nowrap,workers]
+----
+// 删除 localhost
+// 添加从节点主机名
+hadoop-node03
+hadoop-node04
+hadoop-node05
+----
+
+.hadoop-env.sh
+[source%nowrap,bash]
+----
+export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.275.b01-0.el7_9.x86_64/jre
+export HADOOP_HOME=/root/hadoop-3.1.4
+
+# root 用户需要做以下配置
+export HDFS_NAMENODE_USER=root
+export HDFS_DATANODE_USER=root
+export HDFS_SECONDARYNAMENODE_USER=root
+export YARN_RESOURCEMANAGER_USER=root
+export YARN_NODEMANAGER_USER=root
+----
+
+.core-site.xml
+[source%nowrap,xml]
+----
+<configuration>
+    <!--指定集群的文件系统类型：分布式文件系统-->
+    <property>
+        <name>fs.defaultFS</name>
+        <value>hdfs://hadoop-node01:9000</value>
+    </property>
+    <!--指定临时文件存储目录-->
+    <property>
+        <name>hadoop.tmp.dir</name>
+        <value>/root/hadoop-3.1.4/data/tmp</value>
+    </property>
+</configuration>
+----
+
+.hdfs-site.xml
+[source%nowrap,xml]
+----
+<configuration>
+    <property>
+       <name>dfs.name.dir</name>
+       <value>/root/hadoop-3.1.4/data/dfs/name</value>
+       <description>Path on the local filesystem where theNameNode stores the namespace and transactions logs persistently.</description>
+    </property>
+    <property>
+       <name>dfs.data.dir</name>
+       <value>/root/hadoop-3.1.4/data/dfs/data</value>
+       <description>Comma separated list of paths on the localfilesystem of a DataNode where it should store its blocks.</description>
+    </property>
+    <!--指定 namenode 的访问地址和端口-->
+    <property>
+        <name>dfs.namenode.http-address</name>
+        <value>hadoop-node01:50070</value>
+    </property>
+    <property>
+        <name>dfs.namenode.secondary.http-address</name>
+        <value>hadoop-node02:50090</value>
+    </property>
+    <property>
+       <name>dfs.replication</name>
+       <value>2</value>
+    </property>
+    <property>
+      <name>dfs.permissions</name>
+      <value>false</value>
+      <description>need not permissions</description>
+    </property>
+</configuration>
+----
+
+.yarn-site.xml
+[source%nowrap,xml]
+----
+<configuration>
+    <property>
+        <name>yarn.resourcemanager.hostname</name>
+        <value>hadoop-node01</value>
+    </property>
+    <property>
+        <name>yarn.nodemanager.aux-services</name>
+        <value>mapreduce_shuffle</value>
+    </property>
+    <!--通过 hadoop classpath 获取-->
+    <property>
+        <name>yarn.application.classpath</name>
+        <value>/root/hadoop-3.1.4/etc/hadoop:/root/hadoop-3.1.4/share/hadoop/common/lib/*:/root/hadoop-3.1.4/share/hadoop/common/*:/root/hadoop-3.1.4/share/hadoop/hdfs:/root/hadoop-3.1.4/share/hadoop/hdfs/lib/*:/root/hadoop-3.1.4/share/hadoop/hdfs/*:/root/hadoop-3.1.4/share/hadoop/mapreduce/lib/*:/root/hadoop-3.1.4/share/hadoop/mapreduce/*:/root/hadoop-3.1.4/share/hadoop/yarn:/root/hadoop-3.1.4/share/hadoop/yarn/lib/*:/root/hadoop-3.1.4/share/hadoop/yarn/*</value>
+    </property>
+</configuration>
+----
+
+.mapred-site.xml
+[source%nowrap,xml]
+----
+<configuration>
+    <property>
+        <name>mapred.job.tracker</name>
+        <value>hadoop-node01:49001</value>
+    </property>
+    <property>
+        <name>mapred.local.dir</name>
+        <value>/root/hadoop-3.1.4/data/var</value>
+    </property>
+    <property>
+        <name>mapreduce.framework.name</name>
+        <value>yarn</value>
+    </property>
+</configuration>
+----
+
+=== 启动服务
+
+[source%nowrap,bash]
+----
+# 格式化节点数据，仅在首次时使用，否则清空所有数据
+$ hdfs namenode -format
+
+# 启动所有服务
+$ /root/hadoop-3.1.4/sbin/start-all.sh
+Starting namenodes on [node01]
+上一次登录：日 1月 24 03:07:27 CST 2021pts/1 上
+Starting datanodes
+上一次登录：日 1月 24 03:08:22 CST 2021pts/1 上
+node03: ssh: connect to host node03 port 22: No route to host
+node05: ssh: connect to host node05 port 22: No route to host
+node04: ssh: connect to host node04 port 22: No route to host
+Starting secondary namenodes [node02]
+上一次登录：日 1月 24 03:08:24 CST 2021pts/1 上
+node02: ssh: connect to host node02 port 22: No route to host
+Starting resourcemanager
+上一次登录：日 1月 24 03:08:29 CST 2021pts/1 上
+Starting nodemanagers
+上一次登录：日 1月 24 03:08:35 CST 2021pts/1 上
+node05: ssh: connect to host node05 port 22: No route to host
+node03: ssh: connect to host node03 port 22: No route to host
+node04: ssh: connect to host node04 port 22: No route to host
+# 因为目前还没有其他节点，所以连接不上
+----
+
+== 复制节点
+
+基于 node01 复制出 node02、node03、node04、node05 并做相应修改：
+
+[source%nowrap,bash]
+----
+# 设置各节点主机名
+$ hostnamectl set-hostname hadoop-node0?
+
+# 所有节点都启动后，在 node01 上配置 ssh 免密登陆
+$ ssh-keygen -t rsa
+$ cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
+$ scp /root/.ssh/id_rsa.pub root@hadoop-node01:/root/.ssh/authorized_keys
+$ scp /root/.ssh/id_rsa.pub root@hadoop-node02:/root/.ssh/authorized_keys
+$ scp /root/.ssh/id_rsa.pub root@hadoop-node03:/root/.ssh/authorized_keys
+$ scp /root/.ssh/id_rsa.pub root@hadoop-node04:/root/.ssh/authorized_keys
+$ scp /root/.ssh/id_rsa.pub root@hadoop-node05:/root/.ssh/authorized_keys
+----
+
+////
+scp /root/.ssh/id_rsa.pub root@hadoop-node01:/root/.ssh/authorized_keys
+scp /root/.ssh/id_rsa.pub root@hadoop-node02:/root/.ssh/authorized_keys
+scp /root/.ssh/id_rsa.pub root@hadoop-node03:/root/.ssh/authorized_keys
+scp /root/.ssh/id_rsa.pub root@hadoop-node04:/root/.ssh/authorized_keys
+scp /root/.ssh/id_rsa.pub root@hadoop-node05:/root/.ssh/authorized_keys
+////
+
+== 启动服务
+
+在 node01 上，启动所有服务：
+
+[source%nowrap,bash]
+----
+$ /root/hadoop-3.1.4/sbin/start-all.sh
+Starting namenodes on [hadoop-node01]
+上一次登录：日 1月 24 18:31:47 CST 2021从 192.168.150.1pts/1 上
+hadoop-node01: Warning: Permanently added 'hadoop-node01' (ECDSA) to the list of known hosts.
+Starting datanodes
+上一次登录：日 1月 24 18:44:09 CST 2021pts/1 上
+hadoop-node03: Warning: Permanently added 'hadoop-node03' (ECDSA) to the list of known hosts.
+hadoop-node04: Warning: Permanently added 'hadoop-node04' (ECDSA) to the list of known hosts.
+hadoop-node05: Warning: Permanently added 'hadoop-node05' (ECDSA) to the list of known hosts.
+Starting secondary namenodes [hadoop-node02]
+上一次登录：日 1月 24 18:44:11 CST 2021pts/1 上
+hadoop-node02: Warning: Permanently added 'hadoop-node02' (ECDSA) to the list of known hosts.
+Starting resourcemanager
+上一次登录：日 1月 24 18:44:15 CST 2021pts/1 上
+Starting nodemanagers
+上一次登录：日 1月 24 18:44:20 CST 2021pts/1 上
+# /root/hadoop-3.1.4/sbin/stop-all.sh
+
+# 查看启动进程
+$ ps -ef | grep java
+3365 ?        00:00:03 java
+3792 pts/0    00:00:04 java
+
+# 查看网络连接
+$ netstat -natp | grep java
+tcp        0      0 192.168.150.5:50070     0.0.0.0:*               LISTEN      3365/java
+tcp        0      0 192.168.150.5:8088      0.0.0.0:*               LISTEN      3792/java
+tcp        0      0 192.168.150.5:8030      0.0.0.0:*               LISTEN      3792/java
+tcp        0      0 192.168.150.5:8031      0.0.0.0:*               LISTEN      3792/java
+tcp        0      0 192.168.150.5:8032      0.0.0.0:*               LISTEN      3792/java
+tcp        0      0 192.168.150.5:8033      0.0.0.0:*               LISTEN      3792/java
+tcp        0      0 192.168.150.5:9000      0.0.0.0:*               LISTEN      3365/java
+tcp        0      0 192.168.150.5:9000      192.168.150.7:59756     ESTABLISHED 3365/java
+tcp        0      0 192.168.150.5:9000      192.168.150.8:44176     ESTABLISHED 3365/java
+tcp        0      0 192.168.150.5:9000      192.168.150.9:33050     ESTABLISHED 3365/java
+----
+
+== 查看 HDFS
+
+打开网址： http://hadoop-node01:50070
+
+image::Hadoop/hdfs.png[]
+
+== 查看 Yarn 集群
+
+打开网址： http://hadoop-node01:8088
+
+image::Hadoop/yarn.png[]
+

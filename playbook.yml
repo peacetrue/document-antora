@@ -18,11 +18,11 @@ content:
   branches: master
   sources:
     #  - url: ./
-    #  - url: https://github.com/peacetrue/peacetrue.github.io
+    #  - url: git@github.com:peacetrue/peacetrue.github.io
     #    start_path: docs/antora
-    #  - url: https://github.com/peacetrue/peacetrue-template-gradle
+    #  - url: git@github.com:peacetrue/peacetrue-template-gradle
     #    start_path: docs/antora
-    #  - url: https://github.com/peacetrue/peacetrue-core
+    #  - url: git@github.com:peacetrue/peacetrue-core
     #    start_path: docs/antora
     #  - url: ../learn-antora
     #    start_path: docs/antora
@@ -38,28 +38,28 @@ content:
     #  - url: ../peacetrue-result
     #    branches: master
     #    start_path: docs/antora
-   - url: https://github.com/peacetrue/learn
+   - url: git@github.com:peacetrue/learn
      branches: master
      start_path: docs/antora
-   - url: https://github.com/peacetrue/learn-jmeter
+   - url: git@github.com:peacetrue/learn-jmeter
      branches: master
      start_path: docs/antora
-   - url: https://github.com/peacetrue/learn-docker
+   - url: git@github.com:peacetrue/learn-docker
      branches: master
      start_path: docs/antora
-   - url: https://github.com/peacetrue/learn-shell
+   - url: git@github.com:peacetrue/learn-shell
      branches: master
      start_path: docs/antora
-   - url: https://github.com/peacetrue/learn-spring
+   - url: git@github.com:peacetrue/learn-spring
      branches: master
      start_path: docs/antora
-   - url: https://github.com/peacetrue/learn-reactive
+   - url: git@github.com:peacetrue/learn-reactive
      branches: master
      start_path: docs/antora
-   - url: https://github.com/peacetrue/peacetrue-microservice-template
+   - url: git@github.com:peacetrue/peacetrue-microservice-template
      branches: master,local/1.2.0/sleuth
      start_path: docs/antora
-   - url: https://github.com/peacetrue/sample-lock
+   - url: git@github.com:peacetrue/sample-lock
      branches: master
    start_path: docs/antora
 ui:

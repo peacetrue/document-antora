@@ -1,0 +1,46 @@
+= PAC 代理配置
+
+本文简单介绍代理服务器和 PAC 文件，以防食过即忘。
+
+最开始的问题是，浏览器可以访问 https://www.google.com[Google^]，但 Java 代码里面调不通，然后终端也 `ping` 不通。
+
+翻墙是通过 PAC 文件配置的代理：
+
+image::pac/image-2021-06-23-08-08-40-625.png[]
+
+经过一系列研究，省略若干中间过程，直接上结论：
+
+* 代理服务器，只代理请求，与客户端具体环境无关
+* PAC 本质上是一个 JS 文件，运行在浏览器环境中，所以只能代理来自浏览器的请求
+* PAC 本地配置方式不生效：*file://Users/Downloads/71874548.pac*，使用 nginx 做个代理
+* 代理终端的方式：添加 http_proxy（HTTP_PROXY）、https_proxy（HTTPS_PROXY）系统变量，大小写是为了兼容不同的操作系统。给个示例：
+`export http_proxy="http://127.0.0.1:8001"; export HTTP_PROXY="http://127.0.0.1:8001"; export https_proxy="http://127.0.0.1:8001"; export HTTPS_PROXY="http://127.0.0.1:8001"`
+* Java 代码中实现代理的方式：
+
+[source%nowrap,java]
+----
+@Bean
+public RestTemplate restTemplate() {
+    SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+    InetSocketAddress address = new InetSocketAddress("127.0.0.1", "8001");
+    requestFactory.setProxy(new Proxy(Proxy.Type.HTTP, address));
+    return new RestTemplate(requestFactory);
+}
+----
+
+感谢以下文章提供的帮助：
+
+* https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Proxy_servers_and_tunneling/Proxy_Auto-Configuration_PAC_file[代理自动配置文件（PAC）^]
+* https://stackoverflow.com/questions/1033867/debugging-autoproxy-pac-javascript-with-alert[使用 alert debug PAC 文件^]
+
+还有小毛同学。
+
+关于 debug 的经验：
+
+image::pac/image-2021-06-23-08-22-33-423.png[]
+
+打开 firefox 浏览器，*Ctrl+Shift+J* 调出控制台：
+
+image::pac/image-2021-06-23-08-24-33-801.png[]
+
+PAC 文件只在浏览器打开时加载一次，修改内容需要重新打开。

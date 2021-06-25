@@ -1,0 +1,111 @@
+= kibana
+
+本文简单介绍如何在 xref::VirtualBox.adoc[] 上搭建 kibana，使用的版本为 7.11.1。
+
+== 参考
+
+. https://www.elastic.co/guide/cn/kibana/current/index.html[官网^]
+
+== 主机规划
+
+|===
+|服务器 IP |主机名
+
+|192.168.150.24
+|kibana-node01
+|===
+
+== 创建节点
+
+=== 创建虚拟机
+
+. 基于 常用命令 复制出 kibana-node01
+. 启动 kibana-node01
+. 使用命令 `ip addr` 查看 IP 地址为：192.168.150.24
+
+=== 配置虚拟机
+
+[source%nowrap,bash]
+----
+# 登陆 kibana-node01
+$ ssh root@192.168.150.24
+
+# 设置主机名
+$ hostnamectl set-hostname kibana-node01
+
+# 配置 hosts
+$ echo '192.168.150.24 kibana-node01' >>/etc/hosts
+
+192.168.150.24 kibana-node01
+
+# 临时关闭防火墙
+$ systemctl stop firewalld
+# 禁止开机启动
+$ systemctl disable firewalld
+----
+
+=== 安装
+
+[source%nowrap,bash]
+----
+#查看当前目录
+$ pwd
+/root
+
+# 获取安装包
+wget https://artifacts.elastic.co/downloads/kibana/kibana-7.11.1-x86_64.rpm
+# 安装
+$ yum install -y kibana-7.11.1-x86_64.rpm
+----
+
+=== 配置
+
+[source%nowrap,bash]
+----
+# 查看相关配置
+$ find / -name kibana
+/run/kibana
+/etc/sysconfig/kibana
+/etc/rc.d/init.d/kibana
+/etc/kibana
+/var/lib/kibana
+/var/log/kibana
+/usr/share/kibana
+
+# 编辑配置文件
+$ vi /etc/kibana/kibana.yml
+
+server.host: "kibana-node01"
+server.name: "kibana-node01"
+elasticsearch.hosts: ["http://elasticsearch-node01:9200","http://elasticsearch-node02:9200","http://elasticsearch-node03:9200"]
+# "elasticsearch-node01:9200","elasticsearch-node02:9200","elasticsearch-node03:9200"
+----
+
+
+////
+firewall-cmd --query-port=5601/tcp
+firewall-cmd --add-port=5601/tcp --permanent
+firewall-cmd --reload
+
+iptables -A INPUT -p tcp --dport 5601 -j ACCEPT
+iptables -A OUTPUT -p tcp --sport 5601 -j ACCEPT
+iptables -L -n
+service iptables save
+////
+
+
+=== 启动
+
+[source%nowrap,bash]
+----
+$ service kibana start
+$ service kibana status
+
+# 查看内存使用情况
+$ yum -y install epel-release
+$ yum -y install htop
+$ htop
+----
+
+打开浏览器，访问 http://kibana-node01:5601
+
