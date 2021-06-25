@@ -61,7 +61,7 @@ content:
      start_path: docs/antora
    - url: git@github.com:peacetrue/sample-lock
      branches: master
-  start_path: docs/antora
+     start_path: docs/antora
 ui:
   bundle:
     url: https://gitlab.com/antora/antora-ui-default/-/jobs/artifacts/master/raw/build/ui-bundle.zip?job=bundle-stable
