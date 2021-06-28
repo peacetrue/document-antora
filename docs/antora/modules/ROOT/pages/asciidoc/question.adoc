@@ -23,7 +23,7 @@ https://docs.asciidoctor.org/asciidoc/latest/macros/footnote/
 
 == 使用不换行代码全部排成一行
 
-使用 *[source%nowrap,java]* 时，在 IDE 内展示正常，antora 生成的 html 展示不正常，全部排成了一行：
+使用 *[source,java]* 时，在 IDE 内展示正常，antora 生成的 html 展示不正常，全部排成了一行：
 
 image::asciidoc/image-2021-06-26-13-11-48-477.png[]
 

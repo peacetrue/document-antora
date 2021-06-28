@@ -21,7 +21,7 @@
 
 == 配置虚拟机
 
-[source%nowrap,bash]
+[source,bash]
 ----
 # 登陆 sonarqube-node01
 $ ssh root@192.168.150.18
@@ -40,7 +40,7 @@ $ systemctl disable firewalld
 
 == 安装
 
-[source%nowrap,bash]
+[source,bash]
 ----
 $ cd /opt
 

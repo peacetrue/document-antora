@@ -21,7 +21,7 @@ hive 需要用到 MySQL，这里提前预备：
 
 == 配置虚拟机
 
-[source%nowrap,bash]
+[source,bash]
 ----
 # 登陆 hive-node01
 $ ssh root@192.168.150.5
@@ -39,7 +39,7 @@ $ echo '192.168.150.26 mysql-node01' >>/etc/hosts
 == 安装
 
 .绿色版安装
-[source%nowrap,bash]
+[source,bash]
 ----
 #查看当前目录
 [root@localhost ~]# pwd
@@ -58,7 +58,7 @@ $ source ~/.bash_profile
 ----
 
 .解决日志 Jar 包冲突
-[source%nowrap,bash]
+[source,bash]
 ----
 $ mv $HIVE_HOME/lib/log4j-slf4j-impl-2.10.0.jar $HIVE_HOME/lib/log4j-slf4j-impl-2.10.0.jar.bak
 ----
@@ -67,7 +67,7 @@ $ mv $HIVE_HOME/lib/log4j-slf4j-impl-2.10.0.jar $HIVE_HOME/lib/log4j-slf4j-impl-
 
 === 初始化 derby 数据库
 
-[source%nowrap,bash]
+[source,bash]
 ----
 $ $HIVE_HOME/bin/schematool -dbType derby -initSchema
 schemaTool completed
@@ -77,14 +77,14 @@ schemaTool completed
 
 使用命令行方式（CLI）运行：
 
-[source%nowrap,bash]
+[source,bash]
 ----
 $ hive
 ----
 
 遇到以下错误：
 
-[source%nowrap,bash]
+[source,bash]
 ----
 which: no hbase in (/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin:/root/hadoop-3.1.4/bin:/root/hadoop-3.1.4/sbin:/root/bin:/root/hadoop-3.1.4/bin:/root/hadoop-3.1.4/sbin:/root/apache-hive-3.1.2-bin/bin:/root/apache-hive-3.1.2-bin/sbin)
 SLF4J: Class path contains multiple SLF4J bindings.
@@ -98,7 +98,7 @@ Exception in thread "main" java.lang.NoSuchMethodError: com.google.common.base.P
 
 参考 https://issues.apache.org/jira/browse/HIVE-22915：
 
-[source%nowrap,bash]
+[source,bash]
 ----
 # 替换类库
 $ rm $HIVE_HOME/lib/guava-19.0.jar
@@ -107,7 +107,7 @@ $ cp $HADOOP_HOME/share/hadoop/hdfs/lib/guava-27.0-jre.jar $HIVE_HOME/lib/
 
 继续运行 `hive` 命令，可以正常进入：
 
-[source%nowrap,bash]
+[source,bash]
 ----
 [root@hadoop-node01 ~]# hive
 which: no hbase in (/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin:/root/hadoop-3.1.4/bin:/root/hadoop-3.1.4/sbin:/root/apache-hive-3.1.2-bin/bin:/root/apache-hive-3.1.2-bin/sbin)
@@ -126,7 +126,7 @@ hive>
 
 === 服务端模式
 
-[source%nowrap,bash]
+[source,bash]
 ----
 [root@hadoop-node01 ~]# vi /root/apache-hive-3.1.2-bin/conf/hive-site.xml
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
@@ -139,7 +139,7 @@ hive>
 </configuration>
 ----
 
-[source%nowrap,bash]
+[source,bash]
 ----
 $ nohup hive --service metastore 2>&1  &
 ----
@@ -147,7 +147,7 @@ $ nohup hive --service metastore 2>&1  &
 === JDBC 的方式
 
 .配置 thrift 地址
-[source%nowrap,bash]
+[source,bash]
 ----
 [root@hadoop-node01 ~]# vi /root/apache-hive-3.1.2-bin/conf/hive-site.xml
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
@@ -166,7 +166,7 @@ $ nohup hive --service metastore 2>&1  &
 
 使用 HiveServer2 和 Beeline 运行（提供 jdbc 的访问方式）：
 
-[source%nowrap,bash]
+[source,bash]
 ----
 $ echo '' > /tmp/root/hive.log
 $ $HIVE_HOME/bin/hiveserver2
@@ -225,7 +225,7 @@ Beeline version 3.1.2 by Apache Hive
 默认使用 *derby* 数据源，但 *derby* 是基于内存的，不能持久化，所以改成 MySQL 。
 
 .配置 MySQL 数据源
-[source%nowrap,bash]
+[source,bash]
 ----
 [root@hadoop-node01 ~]# vi /root/apache-hive-3.1.2-bin/conf/hive-site.xml
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
@@ -263,13 +263,13 @@ Beeline version 3.1.2 by Apache Hive
 ----
 
 .上传驱动包
-[source%nowrap,bash]
+[source,bash]
 ----
 $ scp /Users/xiayx/.m2/repository/mysql/mysql-connector-java/5.1.46/mysql-connector-java-5.1.46.jar root@hadoop-node01:/root/apache-hive-3.1.2-bin/lib
 ----
 
 .初始化数据库
-[source%nowrap,bash]
+[source,bash]
 ----
 $ $HIVE_HOME/bin/schematool -dbType mysql -initSchema --verbose
 schemaTool completed
@@ -285,7 +285,7 @@ Error while compiling statement: FAILED: SemanticException [Error 10294]: Attemp
 
 https://www.cnblogs.com/wqbin/p/10290039.html
 
-[source%nowrap,shell]
+[source,shell]
 ----
 [root@hadoop-node01 ~]# vi /root/apache-hive-3.1.2-bin/conf/hive-site.xml
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
@@ -320,7 +320,7 @@ https://www.cnblogs.com/wqbin/p/10290039.html
 
 == 基本操作
 
-[source%nowrap,shell]
+[source,shell]
 ----
 0: jdbc:hive2://localhost:10000> show databases;
 

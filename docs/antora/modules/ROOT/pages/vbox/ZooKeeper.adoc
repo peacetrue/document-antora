@@ -36,7 +36,7 @@
 
 === 配置虚拟机
 
-[source%nowrap,bash]
+[source,bash]
 ----
 # 登陆 zookeeper-node01
 $ ssh root@192.168.150.10
@@ -57,7 +57,7 @@ $ systemctl disable firewalld
 
 === 安装
 
-[source%nowrap,bash]
+[source,bash]
 ----
 #查看当前目录
 $ pwd
@@ -77,7 +77,7 @@ $ source ~/.bash_profile
 
 === 配置
 
-[source%nowrap,bash]
+[source,bash]
 ----
 # 配置集群
 $ cd apache-zookeeper-3.6.2-bin/conf
@@ -98,7 +98,7 @@ $ echo '1'>/var/zookeepermyid
 
 === 启动
 
-[source%nowrap,bash]
+[source,bash]
 ----
 # 查看选项
 $ zkServer.sh
@@ -118,7 +118,7 @@ $ zkServer.sh start-foreground
 
 基于 zookeeper-node01 复制出 zookeeper-node02、zookeeper-node03 并做相应修改：
 
-[source%nowrap,bash]
+[source,bash]
 ----
 # 配置 zookeeper-node02
 $ hostnamectl set-hostname zookeeper-node02
@@ -131,7 +131,7 @@ $ echo '3' > /var/zookeeper/myid
 
 == 启动服务
 
-[source%nowrap,bash]
+[source,bash]
 ----
 # 依次在 3 个节点上启动服务，投票过半成为主节点
 $ zkServer.sh start-foreground

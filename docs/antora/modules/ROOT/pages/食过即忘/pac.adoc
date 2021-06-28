@@ -17,7 +17,7 @@ image::pac/image-2021-06-23-08-08-40-625.png[]
 `export http_proxy="http://127.0.0.1:8001"; export HTTP_PROXY="http://127.0.0.1:8001"; export https_proxy="http://127.0.0.1:8001"; export HTTPS_PROXY="http://127.0.0.1:8001"`
 * Java 代码中实现代理的方式：
 
-[source%nowrap,java]
+[source,java]
 ----
 @Bean
 public RestTemplate restTemplate() {

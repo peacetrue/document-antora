@@ -1,0 +1,62 @@
+# antora generate playbook-local.yml
+# antora generate --to-dir local playbook-local.yml
+# antora generate --clean --to-dir local playbook-local.yml
+runtime:
+  cache_dir: ./.cache/antora
+  fetch: true
+site:
+  title: 安宁的博客
+  url: https://peacetrue.cn/summarize/index.html
+  start_page: sample-security::index.adoc
+asciidoc:
+  attributes:
+    numbered: '@'
+    sectnums: 'all@'
+    sectnumlevels: '5@'
+    sourcedir: 'src/main/java@'
+    testsourcedir: 'src/test/java@'
+content:
+  branches: master
+  sources:
+    - url: ../sample-security
+      branches: dev/1.2.4/doc-spring-security
+      start_path: docs/antora
+#    - url: ../peacetrue-core
+#      start_path: docs/antora
+#    - url: ../learn-antora
+#      start_path: docs/antora
+#    - url: ../peacetrue-template-model-library
+#      branches: snapshot/2.0
+#      start_path: docs/antora
+#    - url: ../peacetrue-validation
+#      start_path: docs/antora
+#    - url: ../peacetrue-result
+#      start_path: docs/antora
+#    - url: ../learn
+#      start_path: docs/antora
+#    - url: ../learn-jmeter
+#      start_path: docs/antora
+#    - url: ../learn-docker
+#      start_path: docs/antora
+#    - url: ../learn-shell
+#      start_path: docs/antora
+#    - url: ../learn-spring
+#      start_path: docs/antora
+#    - url: ../learn-reactive
+#      start_path: docs/antora
+#    - url: ../peacetrue-microservice-template
+#      branches: master,local/1.2.0/sleuth
+#      start_path: docs/antora
+#    - url: ../sample-lock
+#      branches: master
+#      start_path: docs/antora
+ui:
+  bundle:
+    url: https://gitlab.com/antora/antora-ui-default/-/jobs/artifacts/master/raw/build/ui-bundle.zip?job=bundle-stable
+    snapshot: true
+  supplemental_files: ./supplemental-ui
+output:
+  dir: ./local
+  clean: true
+#  destinations:
+#    - provider: archive

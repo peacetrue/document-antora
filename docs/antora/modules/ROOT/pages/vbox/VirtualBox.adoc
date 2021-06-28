@@ -26,7 +26,7 @@
 
 刚装好的系统无法连外网，需要配置启动时激活网卡。
 
-[source%nowrap,bash]
+[source,bash]
 ----
 # 编辑网卡
 $ vi /etc/sysconfig/network-scripts/ifcfg-enp0s3
@@ -60,7 +60,7 @@ NOTE: 为了简化操作，这里没有配置静态 IP。
 
 使用命令 `ifconfig vboxnet0` 查看虚拟机在宿主机上的 *vboxnet0* 网卡：
 
-[source%nowrap,bash]
+[source,bash]
 ----
 $ ifconfig vboxnet0
 vboxnet0: flags=8943<UP,BROADCAST,RUNNING,PROMISC,SIMPLEX,MULTICAST> mtu 1500
@@ -85,7 +85,7 @@ image::VirtualBox/添加网卡2后网络情况.png[]
 
 === 宿主机连接虚拟机
 
-[source%nowrap,bash]
+[source,bash]
 ----
 #配置免密登陆
 $ ssh-keygen -t rsa
@@ -120,7 +120,7 @@ $ ssh-copy-id -i ~/.ssh/id_rsa.pub $ali_ssh
 
 === 基础命令
 
-[source%nowrap,bash]
+[source,bash]
 ----
 #安装常用命令
 $ yum install -y wget tree tcpdump vim htop net-tools lsof
@@ -134,7 +134,7 @@ $ vim ~/.vimrc
 
 基于【动态IP】备份，创建一个含 JDK8 的备份：
 
-[source%nowrap,bash]
+[source,bash]
 ----
 $ yum install java-1.8.0-openjdk
 $ java -version
@@ -161,7 +161,7 @@ $ echo $JAVA_HOME
 
 基于【基础命令】备份，创建一个含 JDK13 的备份：
 
-[source%nowrap,bash]
+[source,bash]
 ----
 #下载安装包
 $ curl -O https://download.java.net/java/GA/jdk13/5b8a42f3905b406298b72d750b6919f6/33/GPL/openjdk-13_linux-x64_bin.tar.gz
@@ -187,7 +187,7 @@ OpenJDK 64-Bit Server VM (build 13+33, mixed mode, sharing)
 
 基于 JDK8 备份，添加 MySQL5.7 服务。
 
-[source%nowrap,bash]
+[source,bash]
 ----
 $ pwd
 /root
@@ -250,7 +250,7 @@ $ systemctl disable firewalld
 
 基于 JDK13 备份，安装 PostgreSQL12。
 
-[source%nowrap,bash]
+[source,bash]
 ----
 # 安装
 sudo yum install -y https://download.postgresql.org/pub/repos/yum/reporpms/EL-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm
@@ -292,7 +292,7 @@ telnet 192.168.150.3 5432
 
 基于 【基础命令】 备份，安装 https://docs.docker.com/engine/install/centos/[docker^]。
 
-[source%nowrap,bash]
+[source,bash]
 ----
 # Uninstall old versions
 yum remove docker \
@@ -346,7 +346,7 @@ image::VirtualBox/备份树.png[]
 . cp ifcfg-enp0s3 ifcfg-enp0s8
 . vi ifcfg-enp0s8
 
-[source%nowrap,properties]
+[source,properties]
 ----
 DEVICE=enp0s8 #网卡名称
 TYPE=Ethernet

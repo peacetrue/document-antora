@@ -38,7 +38,7 @@
 
 === 配置虚拟机
 
-[source%nowrap,bash]
+[source,bash]
 ----
 # 登陆 elasticsearch-node01
 $ ssh root@192.168.150.20
@@ -63,7 +63,7 @@ $ systemctl disable firewalld
 
 === 安装
 
-[source%nowrap,bash]
+[source,bash]
 ----
 #查看当前目录
 $ pwd
@@ -78,7 +78,7 @@ $ yum install -y elasticsearch-7.11.1-x86_64.rpm
 
 === 配置
 
-[source%nowrap,bash]
+[source,bash]
 ----
 # 查看相关配置
 $ find / -name elasticsearch
@@ -145,7 +145,7 @@ $ su - elasticuser
 [2021-02-25T12:02:11,767][INFO ][o.e.x.s.s.SecurityStatusChangeListener] [elasticsearch-node01] Active license is now [BASIC]; Security is disabled
 ////
 
-[source%nowrap,bash]
+[source,bash]
 ----
 $ service elasticsearch start
 $ service elasticsearch status
@@ -169,7 +169,7 @@ $ htop
 
 打开浏览器，访问 http://elasticsearch-node01:9200
 
-[source%nowrap,json]
+[source,json]
 ----
 {
 "name": "elasticsearch-node01",
@@ -192,7 +192,7 @@ $ htop
 
 == 复制节点
 
-[source%nowrap,bash]
+[source,bash]
 ----
 # elasticsearch-node01 从单点配置改为集群
 vi /etc/elasticsearch/elasticsearch.yml
@@ -209,7 +209,7 @@ cluster.initial_master_nodes:
 
 基于 elasticsearch-node01 复制出 elasticsearch-node02、elasticsearch-node03 并做相应修改：
 
-[source%nowrap,bash]
+[source,bash]
 ----
 # 配置 elasticsearch-node02
 $ hostnamectl set-hostname elasticsearch-node02
@@ -226,7 +226,7 @@ network.publish_host: 192.168.150.22
 
 == 启动服务
 
-[source%nowrap,bash]
+[source,bash]
 ----
 # 依次在 3 个节点上启动服务
 $ service elasticsearch start
@@ -236,7 +236,7 @@ $ service elasticsearch start
 
 // http://elasticsearch-node01:9200/_cat/indices
 
-[source%nowrap,json]
+[source,json]
 ----
 {
   "cluster_name" : "elasticsearch",

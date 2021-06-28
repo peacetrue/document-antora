@@ -25,7 +25,7 @@
 
 === 配置虚拟机
 
-[source%nowrap,bash]
+[source,bash]
 ----
 # 登陆 kibana-node01
 $ ssh root@192.168.150.24
@@ -46,7 +46,7 @@ $ systemctl disable firewalld
 
 === 安装
 
-[source%nowrap,bash]
+[source,bash]
 ----
 #查看当前目录
 $ pwd
@@ -60,7 +60,7 @@ $ yum install -y kibana-7.11.1-x86_64.rpm
 
 === 配置
 
-[source%nowrap,bash]
+[source,bash]
 ----
 # 查看相关配置
 $ find / -name kibana
@@ -96,7 +96,7 @@ service iptables save
 
 === 启动
 
-[source%nowrap,bash]
+[source,bash]
 ----
 $ service kibana start
 $ service kibana status

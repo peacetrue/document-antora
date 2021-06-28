@@ -48,7 +48,7 @@ prometheu 1972 root   13u  IPv6  26795      0t0  TCP localhost:websm->localhost:
 
 == 服务
 
-[source%nowrap,bash]
+[source,bash]
 ----
 $ useradd -m -s /bin/bash prometheus
 
