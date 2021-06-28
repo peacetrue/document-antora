@@ -5,6 +5,8 @@ asciidoc:
   attributes:
     sectnums: all
     sectnumlevels: 5
+    sourcedir: 'src/main/java'
+    testsourcedir: 'src/test/java'
 start_page: index.adoc
 nav:
   - modules/ROOT/nav.adoc

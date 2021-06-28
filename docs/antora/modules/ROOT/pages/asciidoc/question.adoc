@@ -1,4 +1,8 @@
 = 问题汇总
+:left-square-bracket: [
+:right-square-bracket: ]
+:lsb: [
+:rsb: ]
 
 == 角标如何表示
 
@@ -13,6 +17,52 @@ https://docs.asciidoctor.org/asciidoc/latest/macros/footnote/
 
 评价点什么。footnote:[可以再改进]
 
-== **
+== ** 如何转义
 
 {asterisk}{asterisk} 如何转义？使用占位符，\{asterisk}\{asterisk}={asterisk}{asterisk}。
+
+== 使用不换行代码全部排成一行
+
+使用 *[source%nowrap,java]* 时，在 IDE 内展示正常，antora 生成的 html 展示不正常，全部排成了一行：
+
+image::asciidoc/image-2021-06-26-13-11-48-477.png[]
+
+使用 *[source,java]* 时，在 IDE 内展示为换行，antora 生成的 html 展示正常。
+
+== footnote 中 [] 无法解析
+
+=== 常规模式
+
+源码如下：
+
+image::asciidoc/image-2021-06-28-08-47-39-117.png[]
+
+IDE 中解析正常：
+
+image::asciidoc/image-2021-06-28-08-48-38-966.png[]
+
+antora 解析不正常：
+
+image::asciidoc/image-2021-06-28-08-49-31-231.png[]
+
+=== 使用 &#91;&#93; 转义
+
+使用 &#91;&#93; 后，都解析成字面值。
+
+=== 使用占位符转义
+
+使用 {lsb}{rsb} 后，同<<_常规模式>>。
+
+=== 使用 *\* 转义
+
+源码：
+
+image::asciidoc/image-2021-06-28-09-35-24-960.png[]
+
+IDE 展示不正常：
+
+image::asciidoc/image-2021-06-28-09-36-53-018.png[]
+
+antora 展示正常：
+
+image::asciidoc/image-2021-06-28-09-37-33-006.png[]
