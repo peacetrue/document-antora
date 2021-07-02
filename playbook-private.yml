@@ -9,7 +9,10 @@ site:
   url: https://peacetrue.cn/summarize/index.html
   start_page: learn::index.adoc
 asciidoc:
+  extensions:
+    - asciidoctor-plantuml
   attributes:
+    plantuml-server-url: 'http://www.plantuml.com/plantuml@'
     numbered: '@'
     sectnums: 'all@'
     sectnumlevels: '5@'

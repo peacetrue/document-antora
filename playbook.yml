@@ -9,7 +9,10 @@ site:
   url: https://peacetrue.cn/summarize/index.html
   start_page: sample-security::index.adoc
 asciidoc:
+  extensions:
+    - asciidoctor-plantuml
   attributes:
+    plantuml-server-url: 'http://www.plantuml.com/plantuml@'
     numbered: '@'
     sectnums: 'all@'
     sectnumlevels: '5@'
@@ -19,7 +22,7 @@ content:
   branches: master
   sources:
     - url: git@github.com:peacetrue/sample-security
-      branches: dev/1.2.4/doc-spring-security
+      branches: master
       start_path: docs/antora
     - url: git@github.com:peacetrue/learn-spring
       branches: master
