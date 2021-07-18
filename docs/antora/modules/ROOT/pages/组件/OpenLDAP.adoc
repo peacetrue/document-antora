@@ -1,0 +1,288 @@
+= OpenLDAP
+:dc1: cn
+:dc2: peacetrue
+:admin-name: root
+:admin-password: 123456
+:password: \{SSHA}UHrgFlAKSjSlmQ30EF8N7NKztLpITiqg
+
+本文简单记录 Centos7 上 OpenLDAP 的安装和使用。
+
+LDAP：**L**ightweight **D**irectory **A**ccess **P**rotocol，轻量级目录访问协议。 OpenLDAP 是 LDAP 的一种实现。
+
+详情参考 https://www.itzgeek.com/how-tos/linux/centos-how-tos/step-step-openldap-server-configuration-centos-7-rhel-7.html[Step by Step OpenLDAP Server Configuration on CentOS 7 / RHEL 7^]。
+
+== 预设目标
+
+提前想好域名和管理员账号，文中使用如下设置：
+
+* 域名：*{dc2}.{dc1}*
+* 管理员账号：*{admin-name}* / *{admin-password}*
+
+最终构建效果如下：
+
+image::组件/OpenLDAP/image-2021-07-18-01-25-58-849.png[]
+
+== 安装服务
+
+./root
+[source,bash]
+----
+[root@localhost ~]# yum -y install openldap compat-openldap openldap-clients openldap-servers openldap-servers-sql openldap-devel <.>
+[root@localhost ~]# systemctl start slapd <.>
+[root@localhost ~]# systemctl enable slapd <.>
+[root@localhost ~]# netstat -antup | grep -i 389  <.>
+tcp        0      0 0.0.0.0:389             0.0.0.0:*               LISTEN      1428/slapd
+tcp6       0      0 :::389                  :::*                    LISTEN      1428/slapd
+----
+<.> 安装软件
+<.> 启动服务
+<.> 配置开机自启
+<.> 检查是否已启动 footnote:[如果 netstat 不存在，使用 `yum install net-tools` 安装]
+
+== 配置文件目录结构
+
+安装完成后，配置文件目录结构如下：
+
+./etc/openldap/slapd.d
+[source,bash]
+----
+[root@localhost slapd.d]# tree -L 2
+.
+├── cn=config
+│   ├── cn=schema
+│   ├── cn=schema.ldif
+│   ├── olcDatabase={0}config.ldif
+│   ├── olcDatabase={-1}frontend.ldif
+│   ├── olcDatabase={1}monitor.ldif
+│   └── olcDatabase={2}hdb.ldif
+└── cn=config.ldif
+
+2 directories, 6 files
+----
+
+接下来会修改上面的配置文件，先列出其路径。
+
+== 生成管理员密码
+
+./etc/openldap
+[source,bash]
+----
+[root@localhost openldap]# slappasswd -h {SSHA} -s 123456
+{SSHA}UHrgFlAKSjSlmQ30EF8N7NKztLpITiqg
+----
+
+== 配置服务
+
+=== 修改域名和管理员信息
+
+域名和管理员信息存储在配置文件 */etc/openldap/slapd.d/cn=config/olcDatabase={2}hdb.ldif* 中，原始内容如下：footnote:[原始内容没保存，下面是改动过的内容]
+
+./etc/openldap/slapd.d/cn=config/olcDatabase=\{2}hdb.ldif
+[source,ldif]
+----
+# AUTO-GENERATED FILE - DO NOT EDIT!! Use ldapmodify.
+# CRC32 b51d8d1a
+dn: olcDatabase={2}hdb
+objectClass: olcDatabaseConfig
+objectClass: olcHdbConfig
+olcDatabase: {2}hdb
+olcDbDirectory: /var/lib/ldap
+olcDbIndex: objectClass eq,pres
+olcDbIndex: ou,cn,mail,surname,givenname eq,pres,sub
+structuralObjectClass: olcHdbConfig
+entryUUID: c001c8be-7b23-103b-8856-b99ab42674c9
+creatorsName: cn=config
+createTimestamp: 20210717082137Z
+olcSuffix: dc=peacetrue,dc=cn
+olcRootDN: cn=root,dc=peacetrue,dc=cn
+olcRootPW:: e1NTSEF9ZHhPS2ZNQnNPN1lXTzZ2TXEvcU5UT2lzVGRMZFNaU0g=
+entryCSN: 20210717083131.671068Z#000000#000#000000
+modifiersName: gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth
+modifyTimestamp: 20210717083131Z
+----
+
+不能直接修改该配置文件，而要通过执行命令。新建一个配置文件，写入想要修改的内容：
+
+./etc/openldap/olcDatabase=\{2}hdb.ldif
+[source,ldif]
+----
+dn: olcDatabase={2}hdb,cn=config
+changetype: modify
+replace: olcSuffix
+olcSuffix: dc=peacetrue,dc=cn <.>
+
+dn: olcDatabase={2}hdb,cn=config
+changetype: modify
+replace: olcRootDN
+olcRootDN: cn=root,dc=peacetrue,dc=cn <.>
+
+dn: olcDatabase={2}hdb,cn=config
+changetype: modify
+replace: olcRootPW
+olcRootPW: {SSHA}UHrgFlAKSjSlmQ30EF8N7NKztLpITiqg <.>
+----
+<.> 域名
+<.> 管理员账号
+<.> 管理员密码
+
+执行以下命令，修改配置信息：
+
+./etc/openldap
+[source,bash]
+----
+[root@localhost openldap]# ldapmodify -Y EXTERNAL  -H ldapi:/// -f olcDatabase={2}hdb.ldif
+SASL/EXTERNAL authentication started
+SASL username: gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth
+SASL SSF: 0
+modifying entry "olcDatabase={2}hdb,cn=config"
+modifying entry "olcDatabase={2}hdb,cn=config"
+modifying entry "olcDatabase={2}hdb,cn=config"
+----
+
+=== 修改访问权限
+
+权限信息存储在配置文件 */etc/openldap/slapd.d/cn=config/olcDatabase={1}monitor.ldif* 中，原始内容如下：footnote:[原始内容没保存，下面是改动过的内容]
+
+// cat '/etc/openldap/slapd.d/cn=config/olcDatabase={1}monitor.ldif'
+
+./etc/openldap/slapd.d/cn=config/olcDatabase=\{1}monitor.ldif
+[source,ldif]
+----
+# AUTO-GENERATED FILE - DO NOT EDIT!! Use ldapmodify.
+# CRC32 b1baaa1e
+dn: olcDatabase={1}monitor
+objectClass: olcDatabaseConfig
+olcDatabase: {1}monitor
+structuralObjectClass: olcDatabaseConfig
+entryUUID: c001c526-7b23-103b-8855-b99ab42674c9
+creatorsName: cn=config
+createTimestamp: 20210717082137Z
+olcAccess: {0}to * by dn.base="gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth" read by dn.base="cn=ldapadm,dc=peacetrue,dc=cn" read by * none
+entryCSN: 20210717083525.643695Z#000000#000#000000
+modifiersName: gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth
+modifyTimestamp: 20210717083525Z
+----
+
+不能直接修改该配置文件，而要通过执行命令。新建一个配置文件，写入想要修改的内容：
+
+// vi '/etc/openldap/olcDatabase={1}monitor.ldif'
+
+./etc/openldap/olcDatabase=\{1}monitor.ldif
+[source,ldif]
+----
+dn: olcDatabase={1}monitor,cn=config
+changetype: modify
+replace: olcAccess
+olcAccess: {0}to * by dn.base="gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth" read by dn.base="cn=root,dc=peacetrue,dc=cn" read by * none
+----
+
+执行以下命令，修改配置文件：
+
+./etc/openldap
+[source,bash]
+----
+[root@localhost openldap]# ldapmodify -Y EXTERNAL  -H ldapi:/// -f olcDatabase={1}monitor.ldif
+SASL/EXTERNAL authentication started
+SASL username: gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth
+SASL SSF: 0
+modifying entry "olcDatabase={1}monitor,cn=config"
+----
+
+== 设置初始数据
+
+在 LDAP 中添加一些初始数据。
+
+准备如下初始数据：
+// vi /etc/openldap/init.ldif
+./etc/openldap/init.ldif
+
+[source,ldif]
+----
+dn: dc=peacetrue,dc=cn
+dc: peacetrue
+objectClass: top
+objectClass: domain
+
+dn: cn=root,dc=peacetrue,dc=cn
+objectClass: organizationalRole
+cn: root
+description: LDAP Manager
+
+dn: ou=People,dc=peacetrue,dc=cn
+objectClass: organizationalUnit
+ou: People
+
+dn: ou=Group,dc=peacetrue,dc=cn
+objectClass: organizationalUnit
+ou: Group
+
+dn: uid=test,ou=People,dc=peacetrue,dc=cn
+objectClass: top
+objectClass: account
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: test
+uid: test
+uidNumber: 9999
+gidNumber: 100
+homeDirectory: /home/test
+loginShell: /bin/bash
+gecos: test [Admin (at) ITzGeek]
+userPassword: {crypt}x
+shadowLastChange: 17058
+shadowMin: 0
+shadowMax: 99999
+shadowWarning: 7
+----
+
+执行以下命令，添加初始数据：
+// 123456
+./etc/openldap
+
+[source,bash]
+----
+[root@localhost openldap]# ldapadd -x -W -D "cn=root,dc=peacetrue,dc=cn" -f init.ldif
+Enter LDAP Password:
+adding new entry "dc=peacetrue,dc=cn"
+
+adding new entry "cn=root,dc=peacetrue,dc=cn"
+
+adding new entry "ou=People,dc=peacetrue,dc=cn"
+
+adding new entry "ou=Group,dc=peacetrue,dc=cn"
+
+adding new entry "uid=test,ou=People,dc=peacetrue,dc=cn"
+----
+
+执行以下命令，修改 *test* 账号密码：
+
+./etc/openldap
+[source,bash]
+----
+[root@localhost openldap]# ldappasswd -s 123456 -W -D "cn=root,dc=peacetrue,dc=cn" -x "uid=test,ou=People,dc=peacetrue,dc=cn"
+Enter LDAP Password:
+----
+
+== 客户端
+
+=== MAC
+
+下载 http://www.ldapsoft.com/downloads610/LdapAdminTool-6.10.x-macos-Setup.dmg[LdapAdminTool-6.10.x-macos-Setup.dmg^]，安装后启动：
+
+image::组件/OpenLDAP/image-2021-07-18-10-45-16-989.png[]
+
+点击 *Create a new Connection*：
+
+image::组件/OpenLDAP/image-2021-07-18-10-48-10-601.png[]
+
+Hostname 设置为 Centos7 的 IP 地址，Base DN 不设置或者点下 Fetch Base DNs。点击 *Next*：
+
+image::组件/OpenLDAP/image-2021-07-18-11-02-50-140.png[]
+
+设置为管理员的账号：*cn={admin-name},dc={dc2},dc={dc1}* / *{admin-password}*，点击 *Finish* ：
+
+image::组件/OpenLDAP/image-2021-07-18-01-25-58-849.png[]
+
+=== Java
+
+请查看 https://github.com/peacetrue/samples/tree/master/ldap[通过 java 访问 LDAP 的示例程序^]。

@@ -362,3 +362,15 @@ HWADDR=08:00:27:7C:8F:C3 #网卡的MAC地址，需与图 2 3中的MAC一致
 ////
 
 
+== 虚拟机实例
+
+记录虚拟机实例的 IP 地址和部署的服务。
+
+|===
+|实例名 |服务名 |IP |备注
+
+|LDAP
+|OpenLDAP
+|192.168.150.27
+|https://www.itzgeek.com/how-tos/linux/centos-how-tos/step-step-openldap-server-configuration-centos-7-rhel-7.html[CentOS 7 OpenLDAP 安装^]
+|===

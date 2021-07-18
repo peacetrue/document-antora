@@ -66,3 +66,11 @@ image::asciidoc/image-2021-06-28-09-36-53-018.png[]
 antora 展示正常：
 
 image::asciidoc/image-2021-06-28-09-37-33-006.png[]
+
+== 如何在 source 中使用占位符？
+
+----
+{placeholder} <1>
+----
+<1> 这里占位符无法识别
+
