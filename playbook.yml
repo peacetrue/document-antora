@@ -7,7 +7,7 @@ runtime:
 site:
   title: 安宁的博客
   url: https://peacetrue.cn/summarize/index.html
-  start_page: sample-security::index.adoc
+  start_page: peacetrue-spring::index.adoc
 asciidoc:
   extensions:
     - asciidoctor-plantuml
@@ -18,9 +18,23 @@ asciidoc:
     sectnumlevels: '5@'
     sourcedir: 'src/main/java@'
     testsourcedir: 'src/test/java@'
+    path: 'example$project'
+    source: 'source'
 content:
   branches: master
   sources:
+    - url: git@github.com:peacetrue/peacetrue-result
+      branches: master
+      start_path: docs/antora
+    - url: git@github.com:peacetrue/peacetrue-result-sample
+      branches: master
+      start_path: docs/antora
+    - url: git@github.com:peacetrue/peacetrue-spring
+      branches: master
+      start_path: docs/antora
+    - url: git@github.com:peacetrue/sample-sso-oidc
+      branches: 1.0.0/basic, 1.1.0/env
+      start_path: docs/antora
     - url: git@github.com:peacetrue/sample-security
       branches: master
       start_path: docs/antora
@@ -36,6 +50,9 @@ content:
     - url: git@github.com:peacetrue/sample-lock
       branches: master
       start_path: docs/antora
+#    - url: git@github.com:peacetrue/author
+#      branches: master
+#      start_path: docs/antora
 ui:
   bundle:
     url: https://gitlab.com/antora/antora-ui-default/-/jobs/artifacts/master/raw/build/ui-bundle.zip?job=bundle-stable
