@@ -1,13 +1,15 @@
 # antora generate playbook.yml
 # antora generate --to-dir public playbook.yml
 # antora generate --clean --to-dir public playbook.yml
+git:
+  fetch_concurrency: 1
 runtime:
   cache_dir: ./.cache/antora
-  fetch: true
+  fetch: false
 site:
   title: 安宁的博客
   url: https://peacetrue.cn/summarize/index.html
-  start_page: peacetrue-spring::index.adoc
+  start_page: peacetrue-result::index.adoc
 asciidoc:
   extensions:
     - asciidoctor-plantuml
@@ -34,9 +36,6 @@ content:
       start_path: docs/antora
     - url: git@github.com:peacetrue/sample-sso-oidc
       branches: 1.0.0/basic, 1.1.0/env
-      start_path: docs/antora
-    - url: git@github.com:peacetrue/sample-security
-      branches: master
       start_path: docs/antora
     - url: git@github.com:peacetrue/learn-spring
       branches: master
