@@ -1,0 +1,214 @@
+= 模块概述
+
+== peacetrue-test
+
+测试时使用。
+
+|===
+|类别 |资源库地址 |模块 |Maven 坐标 |简介
+
+|peace
+|https://github.com/peacetrue/peacetrue
+|Column 3, row 1
+|Column 4, row 1
+|Column 5, row 1
+|===
+
+
+== 概览
+
+----
+├── author 作者信息
+├── buckup  待定
+├── business 业务逻辑梳理
+├── company-aliyun 九州云腾
+├── document-antora antora 静态文档
+├── learn 杂项
+├── learn-android
+├── learn-antlr
+├── learn-antora
+├── learn-asciidoctor
+├── learn-async-validate
+├── learn-c
+├── learn-code-review
+├── learn-deep-learning
+├── learn-dita-ot
+├── learn-docker
+├── learn-dubbo
+├── learn-face-recognition
+├── learn-faceid
+├── learn-freemarker
+├── learn-gradle-plugin
+├── learn-groovy
+├── learn-hibernate
+├── learn-intellij-plugin
+├── learn-iview
+├── learn-jackson
+├── learn-java
+├── learn-java-modularize
+├── learn-jmeter
+├── learn-js-qrcode-scan
+├── learn-kotlin
+├── learn-material-ui
+├── learn-nand2tetris
+├── learn-netty
+├── learn-nexus
+├── learn-node
+├── learn-npm
+├── learn-rabbitmq
+├── learn-react-admin
+├── learn-reactive
+├── learn-redis
+├── learn-shell
+├── learn-spring
+├── learn-spring-boot
+├── learn-spring-cloud
+├── learn-spring-cloud2
+├── learn-spring-integration
+├── learn-spring-reactive
+├── learn-test
+├── learn-vue
+├── learn-webpack
+├── learn-zookeeper
+├── mapperx
+├── omni-graffle
+├── pdftag
+├── peacetrue
+├── peacetrue-account
+├── peacetrue-aliyun
+├── peacetrue-android-sqlite
+├── peacetrue-article
+├── peacetrue-asciidoctor-pdf
+├── peacetrue-asm
+├── peacetrue-associate
+├── peacetrue-attachment
+├── peacetrue-bank
+├── peacetrue-cache
+├── peacetrue-captcha
+├── peacetrue-classify
+├── peacetrue-company
+├── peacetrue-component
+├── peacetrue-contact-address
+├── peacetrue-core
+├── peacetrue-crossword
+├── peacetrue-demo
+├── peacetrue-dependencies
+├── peacetrue-dictionary
+├── peacetrue-dubbo
+├── peacetrue-encryption
+├── peacetrue-englishword
+├── peacetrue-enum
+├── peacetrue-estateagent
+├── peacetrue-export
+├── peacetrue-file
+├── peacetrue-flow
+├── peacetrue-game
+├── peacetrue-game-test
+├── peacetrue-generator
+├── peacetrue-generator-sample
+├── peacetrue-github-popularize
+├── peacetrue-goods
+├── peacetrue-idiom
+├── peacetrue-import
+├── peacetrue-iview
+├── peacetrue-jackson
+├── peacetrue-javascript
+├── peacetrue-jira
+├── peacetrue-js
+├── peacetrue-learn
+├── peacetrue-learn-maven-plugin
+├── peacetrue-learn-velocity
+├── peacetrue-lock
+├── peacetrue-log
+├── peacetrue-member
+├── peacetrue-menu
+├── peacetrue-merchant
+├── peacetrue-message
+├── peacetrue-metadata
+├── peacetrue-microservice
+├── peacetrue-microservice-config-repo
+├── peacetrue-microservice-config-repo-template
+├── peacetrue-microservice-template
+├── peacetrue-modelgenerator
+├── peacetrue-modelgenerator-gradle-plugin
+├── peacetrue-modelgenerator-maven-plugin
+├── peacetrue-modify
+├── peacetrue-modules
+├── peacetrue-modules-sample 各种模块组合而成的样章
+├── peacetrue-mybatis
+├── peacetrue-notice
+├── peacetrue-oauth
+├── peacetrue-order
+├── peacetrue-paramconfig
+├── peacetrue-person
+├── peacetrue-private
+├── peacetrue-qaa
+├── peacetrue-qrcode
+├── peacetrue-region
+├── peacetrue-registration
+├── peacetrue-result
+├── peacetrue-role
+├── peacetrue-sample
+├── peacetrue-samples
+├── peacetrue-security
+├── peacetrue-selenium
+├── peacetrue-serialize
+├── peacetrue-spring
+├── peacetrue-sql
+├── peacetrue-talent
+├── peacetrue-talent-page
+├── peacetrue-task
+├── peacetrue-template-antora
+├── peacetrue-template-gradle
+├── peacetrue-template-model
+├── peacetrue-template-model-library
+├── peacetrue-template-model-project
+├── peacetrue-template-model-structure
+├── peacetrue-test
+├── peacetrue-testfragment
+├── peacetrue-tool
+├── peacetrue-tree
+├── peacetrue-user
+├── peacetrue-user_back
+├── peacetrue-useragent
+├── peacetrue-users
+├── peacetrue-validation
+├── peacetrue-velocity
+├── peacetrue-vocabulary
+├── peacetrue-webjars
+├── peacetrue.github.io
+├── peacetrue.github.io�\232\204�\211��\234�
+├── question-summary
+├── ra-data-spring-rest
+├── ra-data-spring-rest-bak
+├── sample-https
+├── sample-lock
+├── sample-rsa
+├── sample-sso-oidc
+├── samples
+├── source
+├── test
+└── xiayx.github.io
+----
+
+== 模块组件
+
+.公共
+* peacetrue-user：平台用户
+* peacetrue-merchant：商户用户
+* peacetrue-member：会员用户
+* peacetrue-dictionary：字典
+* peacetrue-enum：枚举
+* peacetrue-region：地区
+* peacetrue-classify：分类，树形结构
+* peacetrue-file：文件
+* peacetrue-attachment：附件
+
+.电商
+* peacetrue-goods：商品
+* peacetrue-order：订单
+* peacetrue-contact-address：联系地址
+
+=== Profile 特性
+
+只能操作自己创建的相关信息。
