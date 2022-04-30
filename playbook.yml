@@ -1,5 +1,6 @@
 # antora generate playbook.yml
 # antora generate --to-dir public playbook.yml
+# antora generate --to-dir public playbook.yml --fetch
 # antora generate --clean --to-dir public playbook.yml
 git:
   fetch_concurrency: 1
@@ -28,8 +29,11 @@ content:
     - url: git@github.com:peacetrue/peacetrue-result
       branches: master
       start_path: docs/antora
-    - url: git@github.com:peacetrue/peacetrue-result-sample
-      branches: master
+    - url: git@github.com:peacetrue/peacetrue-cryptography
+      start_path: docs/antora
+    - url: git@github.com:peacetrue/peacetrue-beans
+      start_path: docs/antora
+    - url: git@github.com:peacetrue/peacetrue-validation
       start_path: docs/antora
     - url: git@github.com:peacetrue/peacetrue-spring
       branches: master

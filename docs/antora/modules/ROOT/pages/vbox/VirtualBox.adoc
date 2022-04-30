@@ -62,11 +62,29 @@ NOTE: 为了简化操作，这里没有配置静态 IP。
 
 [source,bash]
 ----
-$ ifconfig vboxnet0
+$ sudo ifconfig vboxnet0 192.168.150.1 up
 vboxnet0: flags=8943<UP,BROADCAST,RUNNING,PROMISC,SIMPLEX,MULTICAST> mtu 1500
 	ether 0a:00:27:00:00:00
 	inet 192.168.150.1 netmask 0xffffff00 broadcast 192.168.150.255
 ----
+
+////
+----
+$ netstat -nr | grep en0
+$ netstat -nr | grep vboxnet0
+$ ifconfig -l
+$ ifconfig vboxnet0
+$ sudo ifconfig vboxnet0 192.168.150.1 up
+$ sudo route add -ifscope vboxnet0 192.168.150.0/24 192.168.150.2
+$ sudo route delete -ifscope vboxnet0 192.168.150.0/24 192.168.150.2
+$ sudo route delete -ifscope vboxnet1 192.168.150.0/24 192.168.150.2
+$ sudo route add 192.168.150.0 192.168.150.2 -iface vboxnet0
+$ sudo route add -host 192.168.150.0 -iface vboxnet0
+----
+////
+
+
+
 
 === 添加【网卡2】
 
